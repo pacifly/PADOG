@@ -1,0 +1,10 @@
+## Edit Adi L. Tarca
+##Namespace file for PADOG package
+importFrom(graphics,boxplot)
+importFrom(graphics,abline)
+importFrom(graphics,plot)
+importFrom(graphics,points)
+importFrom(nlme,lme)
+importMethodsFrom(AnnotationDbi,get,as.list)
+export("padog","compPADOG","filteranot")
+
