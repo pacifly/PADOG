@@ -112,126 +112,193 @@ cat("\n");
 
 ##############################################
 #compute scores for iterations 
-MSabsT<-MSTop<-matrix(NA,length(gslist),NI+1)
-
-for(ite in 1:(NI+1)){
- SabsT<-STop<-NULL
-
-
-if(!paired){
-G=factor(group)
-if(ite>1){
-G=factor(sample(group))
+    G = factor(group)
+    Glen = length(G); tab = table(G); idx = which.min(tab); minG = names(tab)[idx]; minGSZ = tab[idx]
+    bigG = rep(setdiff(levels(G), minG), length(G))
+    block = factor(Block)
+    # blockOrd = order(block)
+    topSigNum = dim(esetm)[1]
+    combFun = function(gi, countn=TRUE) {g = G[gi]; tab = table(g)
+                                        if (countn) {
+                                            minsz = min(tab)
+                                            ifelse(minsz > 10, -1, choose(length(g), minsz))
+                                        } else {
+                                            dup = which(g == minG)
+                                            cms = combn(length(g), tab[minG])
+                                            del = apply(cms, 2, setequal, dup)
+                                            if (paired) {
+                                                cms = cms[,order(del,decreasing=TRUE),drop=FALSE]
+                                                cms[] = gi[c(cms)]
+                                                cms
+                                            } else {
+                                                cms[,!del,drop=FALSE]
+                                            }
+                                        }
+                                        }
+    if (paired) {
+        bct = tapply(seq_along(G), block, combFun, simplify=TRUE)
+        nperm = ifelse(any(bct < 0), -1, prod(bct))
+        if (nperm < 0 || nperm > NI) {
+            ## combidx = replicate(NI, unlist(tapply(G, block, sample, simplify=FALSE))) #too slow
+            btab = tapply(seq_along(G), block, `[`, simplify=FALSE)
+            bSamp = function(gi) {
+                g = G[gi]; tab = table(g); bsz = length(g); minsz = tab[minG]
+                cms = do.call(cbind, replicate(NI, sample.int(bsz, minsz), simplify=FALSE))
+                cms[] = gi[c(cms)]
+                cms
+            }
+            combidx = do.call(rbind, lapply(btab, bSamp))
+        } else {
+            bcomb = tapply(seq_along(G), block, combFun, countn=FALSE, simplify=FALSE)
+            colb = expand.grid(lapply(bcomb, function(x) 1:ncol(x)))[-1,,drop=FALSE]
+            combidx = mapply(function(x, y) x[,y,drop=FALSE], bcomb, colb, SIMPLIFY = FALSE)
+            combidx = do.call(rbind, combidx)
+        }
+    } else {
+        nperm = combFun(seq_along(G))
+        if (nperm < 0 || nperm > NI) {
+        combidx = do.call(cbind, replicate(NI, sample.int(Glen, minGSZ), simplify=FALSE))
+        } else {
+        combidx = combFun(seq_along(G), countn=FALSE)
+        }
+    }
+    
+    NI = ncol(combidx)
+    cat("# of permutations used:", NI, "\n")
+    
+    deINgs = intersect(rownames(esetm), unlist(gslist))  
+    gslistINesetm = lapply(gslist, match, table=deINgs, nomatch=0)
+    MSabsT <- MSTop <- matrix(NA, length(gslistINesetm), NI + 1) 
+    gsScoreFun <- function(G, block) {#these two arguments are needed in parallel computing for the environment in model.matrix
+            force(G); force(block) 
+            if (ite > 1) {
+                G = bigG
+                G[combidx[,ite-1]] = minG
+                G = factor(G)
+            }
+            if (paired) {
+                design <- model.matrix(~0 + G + block)
+                colnames(design) <- substr(colnames(design), 2, 100)
+            } else {
+                design <- model.matrix(~0 + G)
+                colnames(design) <- levels(G)
+            }
+        
+            fit <- lmFit(esetm, design)
+            cont.matrix <- makeContrasts(contrasts = "d-c", levels = design)
+            fit2 <- contrasts.fit(fit, cont.matrix)
+            fit2 <- eBayes(fit2)
+            aT1 <- topTable(fit2, coef = 1, number = topSigNum)
+            aT1$ID = rownames(aT1)
+            de = abs(aT1$t)
+            names(de) <- aT1$ID
+            degf = scale(cbind(de, de * gf[names(de)]))
+            rownames(degf) = names(de)  
+            degf = degf[deINgs,,drop=FALSE]        
+            sapply(gslistINesetm, function(z) {
+                                                X = na.omit(degf[z,,drop=FALSE])
+                                                colMeans(X, na.rm=TRUE) * sqrt(nrow(X))
+                                               })
+            }                                               
+    if (paral && require(doParallel) && require(foreach) && require(doRNG)) {
+        ncores = detectCores()
+        if (!is.null(ncr)) ncores = min(ncores, ncr)
+        clust = makeCluster(ncores)
+        registerDoParallel(clust)
+        tryCatch({
+        parRes = foreach(ite = 1:(NI + 1), .combine="c", .packages="limma") %dorng% {
+            Sres <- gsScoreFun(G, block)                                   
+            tmp <- list(t(Sres))
+            names(tmp) <- ite            
+            tmp
+            }
+        parRes = do.call(cbind, parRes[order(as.numeric(names(parRes)))])
+        evenCol = (1:ncol(parRes)) %% 2 == 0
+        MSabsT[] = parRes[,!evenCol]
+        MSTop[] = parRes[,evenCol]
+        rm(parRes)
+        }, 
+        finally = stopCluster(clust)
+        )
+    } else {
+        for (ite in 1:(NI + 1)) {
+        Sres <- gsScoreFun(G, block)                                                                              
+        MSabsT[, ite] <- Sres[1,]
+        MSTop[, ite] <- Sres[2,]
+            if (verbose && (ite %% 10 == 0)) {
+                cat(paste(ite, "/", NI))
+                cat("\n")
+            }
+        }
+    }
+###########################################################    
+    meanAbsT0 = MSabsT[,1]
+    padog0 = MSTop[,1]
+    plotIte = min(NI, 21)
+    MSabsT_raw = MSabsT
+    MSTop_raw = MSTop
+    
+    #standardize scores
+    MSabsT = scale(MSabsT)
+    MSTop = scale(MSTop)
+    
+    #compute p-values
+    mff = function(x) {
+        if (!all(is.na(x))) {
+            mean(x[-1] > x[1], na.rm = TRUE)
+        } else {
+            NA
+        }
+    }
+    PSabsT = apply(MSabsT, 1, mff)
+    PSTop = apply(MSTop, 1, mff)
+    PSabsT[PSabsT == 0] <- 1/NI/100
+    PSTop[PSTop == 0] <- 1/NI/100
+    
+    #do plot the scores for the star pathway
+    if (plots) {
+        par(mfrow = c(2, 2))
+        boxplot(MSabsT_raw[, 1:plotIte] ~ col(MSabsT_raw[, 1:plotIte]), 
+            col = c("lightblue", rep("whitesmoke", NI)), names = c("0", 
+                1:(plotIte - 1)), cex.axis = 0.8, main = "ABSmT scores after first standardization", 
+            cex.main = 0.6)
+        points(1:plotIte, MSabsT_raw[names(gslist) == targetgs, 
+            1:plotIte], col = "red", pch = 19)
+        abline(h = MSabsT_raw[names(gslist) == targetgs, 1], 
+            col = "red")
+        boxplot(MSTop_raw[, 1:plotIte] ~ col(MSTop_raw[, 1:plotIte]), 
+            col = c("lightblue", rep("whitesmoke", NI)), names = c("0", 
+                1:(plotIte - 1)), cex.axis = 0.8, main = "PADOG after first standardization", 
+            cex.main = 0.6)
+        points(1:plotIte, MSTop_raw[names(gslist) == targetgs, 
+            1:plotIte], col = "red", pch = 19)
+        abline(h = MSTop_raw[names(gslist) == targetgs, 1], col = "red")
+        boxplot(MSabsT[, 1:plotIte] ~ col(MSabsT[, 1:plotIte]), 
+            col = c("lightblue", rep("whitesmoke", NI)), names = c("0", 
+                1:(plotIte - 1)), cex.axis = 0.8, main = "ABSmT scores second standardization", 
+            cex.main = 0.6)
+        points(1:plotIte, MSabsT[names(gslist) == targetgs, 1:plotIte], 
+            col = "red", pch = 19)
+        abline(h = MSabsT[names(gslist) == targetgs, 1], col = "red")
+        boxplot(MSTop[, 1:plotIte] ~ col(MSTop[, 1:plotIte]), 
+            col = c("lightblue", rep("whitesmoke", NI)), names = c("0", 
+                1:(plotIte - 1)), cex.axis = 0.8, main = "PADOG after second standardization", 
+            cex.main = 0.6)
+        points(1:plotIte, MSTop[names(gslist) == targetgs, 1:plotIte], 
+            col = "red", pch = 19)
+        abline(h = MSTop[names(gslist) == targetgs, 1], col = "red")
+    }
+    if (!is.null(gs.names)) {
+        myn = gs.names
+    } else {
+        myn = names(gslist)
+    }
+    SIZE = unlist(lapply(gslist, function(x) {
+        length(intersect(rownames(esetm), x))
+    }))
+    res = data.frame(Name = myn, ID = names(gslist), Size = SIZE, 
+        meanAbsT0, padog0, PmeanAbsT = PSabsT, Ppadog = PSTop, 
+        stringsAsFactors = FALSE)
+    res = res[order(res$Ppadog, -res$padog0), ]
+    res
 }
-design <- model.matrix(~0+G)
-colnames(design) <- levels(G)
-fit <- lmFit(esetm, design)
-cont.matrix <- makeContrasts(contrasts="d-c",levels=design)
-fit2 <- contrasts.fit(fit, cont.matrix)
-fit2 <- eBayes(fit2)
-aT1<-topTable(fit2,coef=1, number=dim(esetm)[1])
-}else{
-G=group
-block=factor(Block)
-if(ite>1){
-for(ss in 1:length(levels(block))){
- G[block==levels(block)[ss]]<-sample(G[block==levels(block)[ss]])
-}
-}
-G=factor(G)
-design <- model.matrix(~0+G+block)
-colnames(design)<-substr(colnames(design),2,100)
-fit <- lmFit(esetm, design)
-cont.matrix <- makeContrasts(contrasts="d-c",levels=design)
-fit2 <- contrasts.fit(fit, cont.matrix)
-fit2 <- eBayes(fit2)
-aT1<-topTable(fit2,coef=1, number=dim(esetm)[1])
-}
-aT1$ID=rownames(aT1)
-
-de=abs(aT1$t)
-names(de)<-aT1$ID
-
-
-meande=mean(de)
-sdde=sd(de)
-meangfde=mean(de*gf[names(de)])
-sdgfde=sd(de*gf[names(de)])
-
-#for each pathway
-psizes=NULL
- for(i in 1:length(names(gslist))){
-  path<-names(gslist)[i]
-  X<-(de[gslist[[path]]])
-  X=na.omit(X)
-
- SabsT[i]<-mean(X)
- STop[i]<-mean((X*gf[names(X)]))
- psizes[i]=length(X)
- SabsT[i]<-(SabsT[i]-meande)/(sdde/sqrt(psizes[i]))
- STop[i]<-(STop[i]-meangfde)/(sdgfde/sqrt(psizes[i]))
- }
- 
- 
-
-MSabsT[,ite]<-SabsT
-MSTop[,ite]<-STop
-if(ite==1){
- meanAbsT0=SabsT
- padog0=STop
-}
-
-if(verbose & ite/10==round(ite/10,0)){cat(paste(ite,"/",NI));cat("\n")}
-}
-
-plotIte=min(NI,21)
-
-MSabsT_raw=MSabsT
-MSTop_raw=MSTop
-
-#standardize scores
-for(k in 1:(NI+1)){
- MSabsT[,k]<-(MSabsT[,k]-mean(MSabsT[,k],na.rm=TRUE))/sd(MSabsT[,k],na.rm=TRUE)
- MSTop[,k]<-(MSTop[,k]-mean(MSTop[,k],na.rm=TRUE))/sd(MSTop[,k],na.rm=TRUE)
-}
-
-#compute p-values 
-mff=function(x){if(!all(is.na(x))){sum(x[-1]>x[1],na.rm=TRUE)/sum(!is.na(x[-1]))}else{NA}}
-PSabsT=apply(MSabsT,1,mff)
-PSTop=apply(MSTop,1,mff)
-
-PSabsT[PSabsT==0]<-1/NI/100
-PSTop[PSTop==0]<-1/NI/100
-
-#do plot the scores for the star pathway
-if(plots){
-
-
-par(mfrow=c(2,2))
-boxplot(MSabsT_raw[,1:plotIte]~col(MSabsT_raw[,1:plotIte]),col=c("lightblue",rep("whitesmoke",NI)),names=c("0",1:(plotIte-1)),cex.axis=0.8,main="ABSmT scores after first standardization",cex.main=0.6)
-points(1:plotIte,MSabsT_raw[names(gslist)==targetgs,1:plotIte],col="red",pch=19)
-abline(h=MSabsT_raw[names(gslist)==targetgs,1],col="red")
-boxplot(MSTop_raw[,1:plotIte]~col(MSTop_raw[,1:plotIte]),col=c("lightblue",rep("whitesmoke",NI)),names=c("0",1:(plotIte-1)),cex.axis=0.8,main="PADOG after first standardization",cex.main=0.6)
-points(1:plotIte,MSTop_raw[names(gslist)==targetgs,1:plotIte],col="red",pch=19)
-abline(h=MSTop_raw[names(gslist)==targetgs,1],col="red")
-
-boxplot(MSabsT[,1:plotIte]~col(MSabsT[,1:plotIte]),col=c("lightblue",rep("whitesmoke",NI)),names=c("0",1:(plotIte-1)),cex.axis=0.8,main="ABSmT scores second standardization",cex.main=0.6)
-points(1:plotIte,MSabsT[names(gslist)==targetgs,1:plotIte],col="red",pch=19)
-abline(h=MSabsT[names(gslist)==targetgs,1],col="red")
-boxplot(MSTop[,1:plotIte]~col(MSTop[,1:plotIte]),col=c("lightblue",rep("whitesmoke",NI)),names=c("0",1:(plotIte-1)),cex.axis=0.8,main="PADOG after second standardization",cex.main=0.6)
-points(1:plotIte,MSTop[names(gslist)==targetgs,1:plotIte],col="red",pch=19)
-abline(h=MSTop[names(gslist)==targetgs,1],col="red")
-
-}
-
-if(!is.null(gs.names)){myn=gs.names}else{myn=names(gslist)} 
-
-SIZE=unlist(lapply(gslist,function(x){length(intersect(rownames(esetm),x))}))           
-res=data.frame(Name=myn,ID=names(gslist),Size=SIZE,meanAbsT0,padog0,PmeanAbsT=PSabsT,Ppadog=PSTop,stringsAsFactors=FALSE)
-
-res=res[order(res$Ppadog,-res$padog0),]
-res
-
-}
-
-
