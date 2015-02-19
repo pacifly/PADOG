@@ -1,20 +1,20 @@
 
-padog<-function(esetm=NULL,group=NULL,paired=FALSE,block=NULL,gslist="KEGG.db",organism="hsa",annotation=NULL,gs.names=NULL,NI=1000,plots=FALSE,targetgs=NULL,Nmin=3,verbose=TRUE){
+padog<-function(esetm=NULL,group=NULL,paired=FALSE,block=NULL,gslist="KEGG.db",organism="hsa",annotation=NULL,gs.names=NULL,NI=1000,plots=FALSE,targetgs=NULL,Nmin=3,verbose=TRUE, paral = FALSE, ncr = NULL){
 
 #load needed packages
-require(limma)
+    require(limma)
 
 #initialize the gslist if using KEGG
-if(length(gslist)==1 && gslist=="KEGG.db"){
-stopifnot(nchar(organism)==3)
-require(KEGG.db)
-pathsids=names(as.list(KEGGPATHID2EXTID))[grep(organism,names(as.list(KEGGPATHID2EXTID)))]
-gslist=as.list(KEGGPATHID2EXTID)[pathsids]
-names(gslist)=substr(names(gslist),4,nchar(names(gslist)))
-gs.names=unlist(as.list(KEGGPATHID2NAME)[names(gslist)])
-stopifnot(length(gslist)>=3)
-}
-
+    if (length(gslist) == 1 && gslist == "KEGG.db") {
+        stopifnot(nchar(organism) == 3)
+        require(KEGG.db)
+        pw2id = as.list(KEGGPATHID2EXTID) 
+        gslist = pw2id[grep(organism, names(pw2id))]
+        names(gslist) = sub(paste("^",organism,sep=""), "", names(gslist))
+        gs.names = unlist(as.list(KEGGPATHID2NAME)[names(gslist)])
+        stopifnot(length(gslist) >= 3)
+        rm(pw2id)
+    }
 
 #check arguments
 stopifnot(class(esetm)=="matrix")
@@ -110,6 +110,7 @@ cat(paste("Analyzing ",length(gslist)," gene sets with ",Nmin, " or more genes!"
 cat("\n");
 }
 
+##############################################
 #compute scores for iterations 
 MSabsT<-MSTop<-matrix(NA,length(gslist),NI+1)
 
