@@ -6,7 +6,7 @@ This is a general purpose gene set analysis method that downplays the importance
 The package provides also a benchmark for gene set analysis in terms of sensitivity and ranking using 24 public datasets.
 }
 \usage{
-padog(esetm=NULL,group=NULL,paired=FALSE,block=NULL,gslist="KEGG.db",organism="hsa",annotation=NULL,gs.names=NULL,NI=1000,plots=FALSE,targetgs=NULL,Nmin=3,verbose=TRUE)
+padog(esetm=NULL,group=NULL,paired=FALSE,block=NULL,gslist="KEGG.db",organism="hsa",annotation=NULL,gs.names=NULL,NI=1000,plots=FALSE,targetgs=NULL,Nmin=3,verbose=TRUE,paral=FALSE,ncr=NULL)
 }
 \arguments{
   \item{esetm}{A matrix containing log transfomed and normalized gene expression data. Rows correspond to genes and columns to samples.
@@ -29,6 +29,8 @@ padog(esetm=NULL,group=NULL,paired=FALSE,block=NULL,gslist="KEGG.db",organism="h
   \item{targetgs}{The identifier of a traget gene set for which the scores will be highlighted in the plots produced if \code{plots=TRUE}  }
   \item{Nmin}{The minimum size of gene sets to be included in the analysis.}
   \item{verbose}{If set to TRUE, displays the number of iterations elapsed is displayed.}
+  \item{paral}{If set to TRUE, the \code{NI} iterations will be executed in parallel if multiple CPU cores are available.}
+  \item{ncr}{The number of CPU cores used when \code{paral} set to TRUE. Default is to use all CPU cores detected.}
 }
 
 \details{
@@ -48,7 +50,7 @@ Adi L. Tarca, Sorin Draghici, Gaurav Bhatti, Roberto Romero, Down-weighting over
 
 }
 
-\author{Adi Laurentiu Tarca <atarca@med.wayne.edu>}
+\author{Adi Laurentiu Tarca <atarca@med.wayne.edu> \and Zhonghui Xu <zhonghui.xu@gmail.com>}
 
 \seealso{\code{\link{padog}}}
 
@@ -84,8 +86,25 @@ NI=25,
 plots=FALSE)
 
 
+myr2=padog(
+esetm=dat.m,
+group=ano$Group,
+paired=design=="Paired",
+block=ano$Block,
+targetgs=targetGeneSets,
+annotation=annotation,
+gslist="KEGG.db",
+organism="hsa",
+verbose=TRUE,
+Nmin=3,
+NI=25,
+plots=FALSE,
+paral=TRUE)
+
+
 myr[1:20,]
 
+all.equal(myr, myr2)
 
 
 }
