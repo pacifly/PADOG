@@ -1,5 +1,5 @@
 Package: PADOG
-Version: 1.8.0
+Version: 2.1.0
 Date: 2012-09-10
 Title: Pathway Analysis with Down-weighting of Overlapping Genes
         (PADOG)
@@ -15,7 +15,8 @@ Description: This package implements a general purpose gene set
         analysis methods in terms of sensitivity and ranking using 24
         public datasets from KEGGdzPathwaysGEO package.
 License: GPL (>= 2)
-URL:
+URL: http://github.com/pacifly/PADOG
+BugReports: http://github.com/pacifly/PADOG/issues
 Collate: padog.R compPADOG.R filteranot.R
 Imports: graphics, limma, hgu133plus2.db, hgu133a.db, KEGG.db,
         AnnotationDbi, Biobase, methods, nlme
