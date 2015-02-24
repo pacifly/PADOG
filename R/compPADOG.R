@@ -1,6 +1,8 @@
 
 
-compPADOG=function(datasets=NULL,existingMethods=c("GSA","PADOG"),mymethods=NULL,gs.names=NULL,gslist="KEGG.db",organism="hsa",Nmin=3,NI=1000,use.parallel=TRUE,plots=FALSE,verbose=FALSE){
+compPADOG=function(datasets=NULL,existingMethods=c("GSA","PADOG"),mymethods=NULL,gs.names=NULL,gslist="KEGG.db",organism="hsa",Nmin=3,NI=1000,
+                   use.parallel=TRUE, ncr=NULL, pkgs="GSA", expVars=NULL,
+                   plots=FALSE,verbose=FALSE){
 
 if(is.null(datasets)){
 files=data(package="KEGGdzPathwaysGEO")$results[,"Item"]
@@ -8,10 +10,10 @@ files=data(package="KEGGdzPathwaysGEO")$results[,"Item"]
  files=datasets
 }
 
+data(list=files,package="KEGGdzPathwaysGEO")
 
 getdataaslist= function(x)
 {
-data(list=x,package="KEGGdzPathwaysGEO")
 x=get(x)
 exp=experimentData(x);dataset= exp@name;disease= notes(exp)$disease
 dat.m= exprs(x);ano=pData(x);design= notes(exp)$design;annotation= paste(x@annotation,".db",sep="")
@@ -23,35 +25,18 @@ return(list)
 
 
 
-absmtF=function(set,mygslist,minsize){
-
-list=getdataaslist(set)
-
-set.seed(1)
-res=padog(
-esetm=list$dat.m,
-group=list$ano$Group,
-paired=list$design=="Paired",
-block=list$ano$Block,
-annotation=list$annotation,
-gslist=mygslist,
-verbose=verbose,
-Nmin=minsize,
-NI=NI,
-plots=FALSE)
-res$Dataset<-list$dataset
-res=res[order(res$PmeanAbsT,-res$meanAbsT0),]
-res$Method<-"AbsmT"
-res$Rank=(1:dim(res)[1])/dim(res)[1]*100
-res$P=res$PmeanAbsT
-res$FDR=p.adjust(res$P,"fdr")
-res[res$ID%in%list$targetGeneSets,]
+padog2absmt = function(res, list){
+	res=res[order(res$PmeanAbsT,-res$meanAbsT0),]
+	res$Method<-"AbsmT"
+	res$Rank=(1:dim(res)[1])/dim(res)[1]*100
+	res$P=res$PmeanAbsT
+	res$FDR=p.adjust(res$P,"fdr")
+        res[res$ID %in% list$targetGeneSets,]
 }
 
 padogF=function(set,mygslist,minsize){
 list=getdataaslist(set)
 
-set.seed(1)
 res=padog(
 esetm=list$dat.m,
 group=list$ano$Group,
@@ -62,14 +47,20 @@ gslist=mygslist,
 verbose=verbose,
 Nmin=minsize,
 NI=NI,
-plots=FALSE)
+plots=FALSE,
+paral=use.parallel,
+ncr=ncr
+)
+
 res$Dataset<-list$dataset
+
 res$Method<-"PADOG"
 res$Rank=(1:dim(res)[1])/dim(res)[1]*100
 res$P=res$Ppadog
 res$FDR=p.adjust(res$P,"fdr")
+
 rownames(res)<-NULL
-res[res$ID%in%list$targetGeneSets,]
+rbind(res[res$ID %in% list$targetGeneSets,], padog2absmt(res, list))
 }
 
 
@@ -115,68 +106,90 @@ rownames(res)<-NULL
 res[res$ID%in%list$targetGeneSets,]
 }
 
-
-if(require(GSA)){
-defGSmethods=list(GSA=gsaF,PADOG=padogF,AbsmT=absmtF)
-}else{
-defGSmethods=list(ABSMT=absmtF,PADOG=padogF)
+defGSmethods = list(GSA=gsaF, PADOG=padogF)
+GSmethods = c(as.list(existingMethods), mymethods)
+names(GSmethods) = c(existingMethods, names(mymethods))
+defMeth = intersect(names(defGSmethods), names(GSmethods))
+GSmethods[defMeth] = defGSmethods[defMeth]
+if(! require(GSA)){
+  GSmethods = GSmethods[names(GSmethods) != "GSA"]
 }
-
-GSmethods=defGSmethods[intersect(names(defGSmethods),existingMethods)]
-
-GSmethods=c(GSmethods,mymethods)
-
+GSMok = GSmethods
+GSMok[names(GSMok) == "AbsmT"] = defGSmethods["PADOG"]
+names(GSMok)[names(GSMok) == "AbsmT"] = "PADOG"
+GSMok = GSMok[! duplicated(names(GSMok))]
 refMethod=names(GSmethods)[1]
-
 
 
 #check GS
 if(length(gslist)==1 && gslist=="KEGG.db"){
-require(KEGG.db)
-pathsids=names(as.list(KEGGPATHID2EXTID))[grep(organism,names(as.list(KEGGPATHID2EXTID)))]
-gslist=as.list(KEGGPATHID2EXTID)[pathsids]
-names(gslist)=substr(names(gslist),4,nchar(names(gslist)))
-gs.names=unlist(as.list(KEGGPATHID2NAME)[names(gslist)])
-stopifnot(length(gslist)>=3)
+    require(KEGG.db)
+    pw2id = as.list(KEGGPATHID2EXTID) 
+    gslist = pw2id[grep(organism, names(pw2id))]
+    names(gslist) = sub(paste("^",organism,sep=""), "", names(gslist))
+    gs.names = unlist(as.list(KEGGPATHID2NAME)[names(gslist)])
+    rm(pw2id)
 }
 stopifnot(class(gslist)=="list")
 stopifnot(length(gslist)>=3)
 if(!is.null(gs.names)){stopifnot(length(gslist)==length(gs.names))}
 
 
-
-
-
-
-
-reslist=list()
-for(i in 1:length(GSmethods)){
-if(require(parallel)&use.parallel){
-reslist[[names(GSmethods)[i]]]<- mclapply(files,GSmethods[[i]],mygslist=gslist,minsize=Nmin)
-}else{
- reslist[[names(GSmethods)[i]]]<- lapply(files,GSmethods[[i]],mygslist=gslist,minsize=Nmin)
-}
+aggFun = function(zdat) {
+    tmp = do.call(rbind, zdat)[,c("ID","Rank","P","FDR","Dataset","Method")]
+    rownames(tmp) = NULL
+    tmp
 }
 
+dfr = list()
 
+if ("PADOG" %in% names(GSMok)) {
+    dfr[["PADOG"]] = aggFun(lapply(files, GSMok[["PADOG"]], mygslist=gslist, minsize=Nmin))
+    GSMok = GSMok[names(GSMok) != "PADOG"]
+}
 
-dfs=list();
-for(i in 1:length(reslist))
-{y=NULL
-  for(j in 1:length(reslist[[i]])){
-  tm=as.data.frame(reslist[[i]][[j]])
-  rownames(tm)<-NULL
- y=rbind(y,tm[,c("ID","Rank","P","FDR","Dataset","Method")])}
- dfs[[names(reslist)[i]]]<-y
+if (use.parallel && require(doParallel) && require(foreach)) {
+    ncores = detectCores()
+    if (!is.null(ncr)) ncores = min(c(ncores, ncr))
+    clust = makeCluster(ncores)
+    registerDoParallel(clust)
+    tryCatch({
+    parRes <- 
+        foreach(outi = seq_along(GSMok), .combine="c", .packages=pkgs, .export=expVars) %:% 
+        foreach(ini  = seq_along(files), .combine="c", .packages=pkgs, .export=expVars) %dopar% {
+            lapply(files[ini], GSMok[[outi]], mygslist=gslist, minsize=Nmin)
+        }
+    parRes = aggFun(parRes)
+    parRes = split(parRes, parRes$Method)
+    dfr[names(GSMok)] = parRes[names(GSMok)]
+    rm(parRes)
+    }, 
+    finally = stopCluster(clust)
+    )
+} else {
+    dfr[names(GSMok)] = lapply(GSMok, function(m) aggFun(lapply(files, m, mygslist=gslist, minsize=Nmin)))
 }
 
 
-#identify common genesets/datasets combinations among the 3 methods.
-nmsp=lapply(dfs,function(x){paste(x$Dataset,x$ID,sep="_")})
+shared = Reduce(merge, lapply(dfr, function(z) {z=z[complete.cases(z),]; z=z[,c("Dataset", "ID")]; z=z[!duplicated(z),]; z} ))
 
-for( i in 2:length(nmsp)){
- stopifnot(all(nmsp[[i]]==nmsp[[i-1]]))
-}
+dfs = list()
+dfs[names(GSmethods)] = lapply(names(GSmethods), function(m){
+    if (m == "AbsmT") {
+        retn = dfr[["PADOG"]]
+        retn = retn[retn$Method == "AbsmT",]
+    } else if (m == "PADOG") {
+        retn = dfr[["PADOG"]]
+        retn = retn[retn$Method == "PADOG",]
+    } else {
+        retn = dfr[[m]]
+    }
+    stopifnot(!any(duplicated(retn[,c("Dataset", "ID")])))
+    retn = merge(shared, retn, all.x=TRUE)
+    retn[order(retn$Dataset, retn$ID),]
+})
+rm(dfr)
+
 
 psList<-lapply(dfs,function(x){x$P})
 fdrList<-lapply(dfs,function(x){x$FDR})
@@ -207,12 +220,12 @@ if(re[1]<0){c(re[1],re[2]/2)}else{c(re[1],1-re[2]/2)}
 
 
 
-repo=data.frame(matrix(unlist(lapply(rankList,wioright)),length(psList),2,byrow=TRUE))
+repo = data.frame(t(sapply(rankList, wioright)))
 names(repo)<-c("coef. LME","p LME")
-repo$"p Wilcox."<-lapply(rankList,wi)
+repo$"p Wilcox."<-sapply(rankList,wi)
 
-l05<-function(x){round(sum(x<0.05)/length(x)*100,2)}
-geomean<-function(x){prod(x)^(1/length(x))}
+l05 <- function(x) round(mean(x<0.05)*100,2)
+geomean <- function(x) {x = ifelse(x == 0, 1e-16, x);  exp(mean(log(x)))}
 
 repo$"% p.value<0.05"<-lapply(psList,l05)
 repo$"% q.value<0.05"<-lapply(fdrList,l05)
@@ -227,7 +240,7 @@ nmets=length(psList)
 
 somecols=c("lightgrey","lightblue","orange","red","blue","grey")
 set.seed(1)
-if(nmets>6){somecols=c(somecols,sample(colors())[1:(nmets-6)])}
+if(nmets>6){somecols=c(somecols,sample(setdiff(colors(), somecols))[1:(nmets-6)])}
 
 if(plots){
 
