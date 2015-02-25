@@ -1,7 +1,7 @@
 
 
 compPADOG=function(datasets=NULL,existingMethods=c("GSA","PADOG"),mymethods=NULL,gs.names=NULL,gslist="KEGG.db",organism="hsa",Nmin=3,NI=1000,
-                   use.parallel=TRUE, ncr=NULL, pkgs="GSA", expVars=NULL,
+                   use.parallel=TRUE, ncr=NULL, pkgs="GSA", expVars=NULL, dseed=NULL,
                    plots=FALSE,verbose=FALSE){
 
 if(is.null(datasets)){
@@ -49,7 +49,8 @@ Nmin=minsize,
 NI=NI,
 plots=FALSE,
 paral=use.parallel,
-ncr=ncr
+ncr=ncr,
+dseed=dseed
 )
 
 res$Dataset<-list$dataset
