@@ -1,5 +1,6 @@
 
-padog<-function(esetm=NULL,group=NULL,paired=FALSE,block=NULL,gslist="KEGG.db",organism="hsa",annotation=NULL,gs.names=NULL,NI=1000,plots=FALSE,targetgs=NULL,Nmin=3,verbose=TRUE, paral = FALSE, ncr = NULL){
+padog<-function(esetm=NULL,group=NULL,paired=FALSE,block=NULL,gslist="KEGG.db",organism="hsa",annotation=NULL,gs.names=NULL,NI=1000,plots=FALSE,targetgs=NULL,Nmin=3,verbose=TRUE,
+                paral = FALSE, dseed = NULL, ncr = NULL){
 
 #load needed packages
     require(limma)
@@ -111,6 +112,7 @@ cat("\n");
 }
 
 ##############################################
+if (! is.null(dseed)) set.seed(dseed)
 #compute scores for iterations 
     G = factor(group)
     Glen = length(G); tab = table(G); idx = which.min(tab); minG = names(tab)[idx]; minGSZ = tab[idx]

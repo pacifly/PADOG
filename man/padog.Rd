@@ -6,7 +6,7 @@ This is a general purpose gene set analysis method that downplays the importance
 The package provides also a benchmark for gene set analysis in terms of sensitivity and ranking using 24 public datasets.
 }
 \usage{
-padog(esetm=NULL,group=NULL,paired=FALSE,block=NULL,gslist="KEGG.db",organism="hsa",annotation=NULL,gs.names=NULL,NI=1000,plots=FALSE,targetgs=NULL,Nmin=3,verbose=TRUE,paral=FALSE,ncr=NULL)
+padog(esetm=NULL,group=NULL,paired=FALSE,block=NULL,gslist="KEGG.db",organism="hsa",annotation=NULL,gs.names=NULL,NI=1000,plots=FALSE,targetgs=NULL,Nmin=3,verbose=TRUE,paral=FALSE,dseed=NULL,ncr=NULL)
 }
 \arguments{
   \item{esetm}{A matrix containing log transfomed and normalized gene expression data. Rows correspond to genes and columns to samples.
@@ -30,6 +30,7 @@ padog(esetm=NULL,group=NULL,paired=FALSE,block=NULL,gslist="KEGG.db",organism="h
   \item{Nmin}{The minimum size of gene sets to be included in the analysis.}
   \item{verbose}{If set to TRUE, displays the number of iterations elapsed is displayed.}
   \item{paral}{If set to TRUE, the \code{NI} iterations will be executed in parallel if multiple CPU cores are available.}
+  \item{dseed}{Optional initial seed for random number generator (integer).}
   \item{ncr}{The number of CPU cores used when \code{paral} set to TRUE. Default is to use all CPU cores detected.}
 }
 
