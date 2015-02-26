@@ -6,7 +6,8 @@ This is a general purpose function to compare a given gene set analysis method i
 public datasets.
 }
 \usage{
-compPADOG(datasets=NULL,existingMethods=c("GSA","PADOG"),mymethods=NULL,gs.names=NULL,gslist="KEGG.db",organism="hsa",Nmin=3,NI=1000,use.parallel=TRUE,plots=FALSE,verbose=FALSE)
+compPADOG(datasets=NULL,existingMethods=c("GSA","PADOG"),mymethods=NULL,gs.names=NULL,gslist="KEGG.db",organism="hsa",Nmin=3,NI=1000,
+          use.parallel=TRUE,ncr=NULL, pkgs="GSA", expVars=NULL, dseed=NULL,plots=FALSE,verbose=FALSE)
 }
 \arguments{
   \item{datasets}{A character vector with valid names of datasets to use from the PADOGsets package. If left NULL all datasets avalibale in PADOGsets will be used.
@@ -14,13 +15,17 @@ compPADOG(datasets=NULL,existingMethods=c("GSA","PADOG"),mymethods=NULL,gs.names
   \item{existingMethods}{A character vector with one or more of the predefined methods c("GSA","PADOG"). The first is used as reference method.}
   \item{mymethods}{A list whose elements are valid functions implementing gene set analysis methods. See the example to see what arguments the functions have to take in and 
   what kind of output they need to produce.}
+  \item{gs.names}{A character vector giving additional information about each gene set. For instance when gene seta are pathways, the full name of the pathway would be a meaningful gene set name.}
   \item{gslist}{Either the value "KEGG.db" or a list with the gene sets. If set to "KEGG.db", then gene sets will be made of all KEGG pathways for human since all datasets available in 
   PADOG are for human.}
    \item{organism}{A three letter string giving the name of the organism supported by the "KEGG.db" package.}
-  \item{gs.names}{A character vector giving additional information about each gene set. For instance when gene seta are pathways, the full name of the pathway would be a meaningful gene set name.}
-  \item{NI}{Number of iterations to determine the gene set score significance p-values in PADOG and GSA methods.}
-  \item{use.parallel}{Should paralell be used if multiple cores are available and the package parallel is available. If se to TRUE one dataset will be run on on multiple CPU at a time (Not available on Windows).}
   \item{Nmin}{The minimum size of gene sets to be included in the analysis for all methods.}
+  \item{NI}{Number of iterations to determine the gene set score significance p-values in PADOG and GSA methods.}
+  \item{use.parallel}{If set to TRUE and multiple CPU cores are available, the parallelization will be distributed either over the \code{NI} iterations for "PADOG", or over datasets/methods combination otherwise.}
+  \item{ncr}{The number of CPU cores used when \code{use.parallel} set to TRUE. Default is to use all CPU cores detected.}
+  \item{pkgs}{Character vector of packages that the \code{existingMethods} and \code{mymethods} depend on (e.g. \code{NULL} for "PADOG", "GSA" for "GSA"). Consult the \code{.packages} argument in \code{foreach} function from \code{foreach} package.}
+  \item{expVars}{Character vector of variables to export. Consult the \code{.export} argument in \code{foreach} function from \code{foreach} package.}
+  \item{dseed}{Optional initial seed for random number generator (integer) used in \code{padog}.}
   \item{plots}{If set to TRUE will plot the ranks of the target genesets and the ranks differences between a methods and the reference method.}
   \item{verbose}{This argument will be passed to PADOG and AbsmT methods. If set to TRUE
   it will show the interations performed so far.}
@@ -51,7 +56,7 @@ Adi L. Tarca, Sorin Draghici, Gaurav Bhatti, Roberto Romero, Down-weighting over
 
 }
 
-\author{Adi Laurentiu Tarca <atarca@med.wayne.edu>}
+\author{Adi Laurentiu Tarca <atarca@med.wayne.edu> \and Zhonghui Xu <zhonghui.xu@gmail.com>}
 
 \seealso{\code{\link{compPADOG}}}
 
@@ -105,17 +110,16 @@ return(res[res$ID \%in\% targetGeneSets,])
 
 #run the analysis on all 24 datasets and compare the new method "myRand" with 
 #PADOG and GSA (if installed) (chosen as reference since is listed first in the existingMethods)
-#if the package parallel is installed datasets are analyzed in parallel.
 #out=compPADOG(datasets=NULL,existingMethods=c("GSA","PADOG"),
  #mymethods=list(myRand=randomF),
- #gslist="KEGG.db",Nmin=3,NI=1000,plots=TRUE,verbose=FALSE)
+ #gslist="KEGG.db",Nmin=3,NI=1000,plots=FALSE,verbose=FALSE,use.parallel=TRUE,dseed=1,pkgs=c("GSA","PADOG"))
 
-#compare myRand against PADOG on 4 datasets only
+#compare myRand against PADOG on 3 datasets only
 #mysets=data(package="PADOGsets")$results[,"Item"]
 mysets=c("GSE9348","GSE8671","GSE1297")
 out=compPADOG(datasets=mysets,existingMethods=c("PADOG"),
  mymethods=list(myRand=randomF),
- gslist="KEGG.db",Nmin=3,NI=20,plots=FALSE,verbose=FALSE)
+ gslist="KEGG.db",Nmin=3,NI=20,plots=FALSE,verbose=FALSE,use.parallel=FALSE,dseed=1,pkgs=NULL)
 
 }
 
