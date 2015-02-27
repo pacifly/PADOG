@@ -51,7 +51,7 @@ Adi L. Tarca, Sorin Draghici, Gaurav Bhatti, Roberto Romero, Down-weighting over
 
 }
 
-\author{Adi Laurentiu Tarca <atarca@med.wayne.edu> \and Zhonghui Xu <zhonghui.xu@gmail.com>}
+\author{Adi Laurentiu Tarca <atarca@med.wayne.edu> and Zhonghui Xu <zhonghui.xu@gmail.com>}
 
 \seealso{\code{\link{padog}}}
 
