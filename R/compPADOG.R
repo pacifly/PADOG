@@ -1,5 +1,11 @@
 
-
+#' @export
+#'
+#' @importFrom AnnotationDbi get as.list 
+#' @importFrom Biobase experimentData notes exprs pData 
+#' @importFrom GSA GSA
+#' @importFrom foreach foreach %dopar% %:%
+#'
 compPADOG=function(datasets=NULL,existingMethods=c("GSA","PADOG"),mymethods=NULL,gs.names=NULL,gslist="KEGG.db",organism="hsa",Nmin=3,NI=1000,
                    use.parallel=TRUE, ncr=NULL, pkgs="GSA", expVars=NULL, dseed=NULL,
                    plots=FALSE,verbose=FALSE){
@@ -22,8 +28,6 @@ list=list(dataset,disease,dat.m,ano,design,annotation,targetGeneSets)
 names(list)= c("dataset","disease","dat.m","ano","design","annotation","targetGeneSets")
 return(list)
 }
-
-
 
 padog2absmt = function(res, list){
 	res=res[order(res$PmeanAbsT,-res$meanAbsT0),]
@@ -66,7 +70,6 @@ rbind(res[res$ID %in% list$targetGeneSets,], padog2absmt(res, list))
 
 
 gsaF=function(set,mygslist,minsize){
-require(GSA)
 list=getdataaslist(set)
 
 group=list$ano$Group
@@ -112,9 +115,6 @@ GSmethods = c(as.list(existingMethods), mymethods)
 names(GSmethods) = c(existingMethods, names(mymethods))
 defMeth = intersect(names(defGSmethods), names(GSmethods))
 GSmethods[defMeth] = defGSmethods[defMeth]
-if(! require(GSA)){
-  GSmethods = GSmethods[names(GSmethods) != "GSA"]
-}
 GSMok = GSmethods
 GSMok[names(GSMok) == "AbsmT"] = defGSmethods["PADOG"]
 names(GSMok)[names(GSMok) == "AbsmT"] = "PADOG"
@@ -124,7 +124,6 @@ refMethod=names(GSmethods)[1]
 
 #check GS
 if(length(gslist)==1 && gslist=="KEGG.db"){
-    require(KEGG.db)
     pw2id = as.list(KEGGPATHID2EXTID) 
     gslist = pw2id[grep(organism, names(pw2id))]
     names(gslist) = sub(paste("^",organism,sep=""), "", names(gslist))
@@ -149,11 +148,11 @@ if ("PADOG" %in% names(GSMok)) {
     GSMok = GSMok[names(GSMok) != "PADOG"]
 }
 
-if (use.parallel && require(doParallel) && require(foreach)) {
-    ncores = detectCores()
+if (use.parallel && requireNamespace("doParallel", quietly=TRUE) && requireNamespace("parallel", quietly=TRUE)) {
+    ncores = parallel::detectCores()
     if (!is.null(ncr)) ncores = min(c(ncores, ncr))
-    clust = makeCluster(ncores)
-    registerDoParallel(clust)
+    clust = parallel::makeCluster(ncores)
+    doParallel::registerDoParallel(clust)
     tryCatch({
     parRes <- 
         foreach(outi = seq_along(GSMok), .combine="c", .packages=pkgs, .export=expVars) %:% 
@@ -165,7 +164,7 @@ if (use.parallel && require(doParallel) && require(foreach)) {
     dfr[names(GSMok)] = parRes[names(GSMok)]
     rm(parRes)
     }, 
-    finally = stopCluster(clust)
+    finally = parallel::stopCluster(clust)
     )
 } else {
     dfr[names(GSMok)] = lapply(GSMok, function(m) aggFun(lapply(files, m, mygslist=gslist, minsize=Nmin)))
@@ -206,7 +205,6 @@ wilcox.test(x,rankList[[refMethod]],paired=TRUE,alternative="less")$"p.value"
 }else{1}
 }
 
-require(nlme)
 wioright=function(x){
 if(!all(x==rankList[[refMethod]])){
 dset=data.frame(Method=rep(c(1,0),each=length(rankList[[refMethod]])),

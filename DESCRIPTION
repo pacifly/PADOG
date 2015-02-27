@@ -4,12 +4,13 @@ Date: 2012-09-10
 Title: Pathway Analysis with Down-weighting of Overlapping Genes
         (PADOG)
 Authors@R: c(
-    person("Adi", "Tarca", "Laurentiu", email="atarca@med.wayne.edu", role=c("aut","cre")),
-    person("Zhonghui", "Xu", email="zhonghui.xu@gmail.com", role=c("aut","cre"))
+    person("Adi", "Tarca", "Laurentiu", email="atarca@med.wayne.edu",
+            role=c("aut","cre")),
+    person("Zhonghui", "Xu", email="zhonghui.xu@gmail.com",
+            role=c("aut","cre"))
     )
-Depends: R (>= 2.14.0), KEGGdzPathwaysGEO, graphics, limma,
-        AnnotationDbi, Biobase, methods, nlme, GSA,KEGG.db
-Suggests: parallel
+Depends: R (>= 2.14.0), KEGGdzPathwaysGEO, methods, KEGG.db, nlme
+Suggests: doParallel, parallel 
 Maintainer: Adi Laurentiu Tarca <atarca@med.wayne.edu>
 Description: This package implements a general purpose gene set
         analysis method called PADOG that downplays the importance of
@@ -21,8 +22,8 @@ License: GPL (>= 2)
 URL: http://github.com/pacifly/PADOG
 BugReports: http://github.com/pacifly/PADOG/issues
 Collate: padog.R compPADOG.R filteranot.R
-Imports: graphics, limma, hgu133plus2.db, hgu133a.db, KEGG.db,
-        AnnotationDbi, Biobase, methods, nlme
+Imports: limma, AnnotationDbi, Biobase, GSA, foreach, doRNG,
+         hgu133plus2.db, hgu133a.db 
 LazyLoad: yes
 biocViews: Microarray, OneChannel, TwoChannel
 Packaged: 2014-10-14 02:58:26 UTC; biocbuild

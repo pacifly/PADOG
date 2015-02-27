@@ -1,4 +1,11 @@
 
+#' @export
+#'
+#' @importFrom limma lmFit makeContrasts contrasts.fit eBayes topTable
+#' @importFrom AnnotationDbi get as.list mappedkeys
+#' @importFrom foreach foreach
+#' @importFrom doRNG %dorng%
+#'
 padog<-function(esetm=NULL,group=NULL,paired=FALSE,block=NULL,gslist="KEGG.db",organism="hsa",annotation=NULL,gs.names=NULL,NI=1000,plots=FALSE,targetgs=NULL,Nmin=3,verbose=TRUE,
                 paral = FALSE, dseed = NULL, ncr = NULL){
 
@@ -42,16 +49,8 @@ stopifnot( sum(rownames(esetm)%in%mappedkeys(get(paste(substr(annotation,1,nchar
  stopifnot(sum(rownames(esetm)%in%as.character(unlist(gslist)))>10 & !any(duplicated(rownames(esetm))))
 }
 
-
-
 #substitute some names
 Block=block
-
-
-
-
-#
-
 
 #compute gene frequencies accross genesets
 gf=table(unlist(gslist))
@@ -71,7 +70,6 @@ gf=gff(gf)
 
 
 allGallP=unique(unlist(gslist))
-
 
 
 if(!is.null(annotation)){
@@ -162,8 +160,10 @@ if (! is.null(dseed)) set.seed(dseed)
     }
     
     NI = ncol(combidx)
-    cat("# of permutations used:", NI, "\n")
-    
+    if (verbose) {
+        cat("# of permutations used:", NI, "\n")
+    }
+
     deINgs = intersect(rownames(esetm), unlist(gslist))  
     gslistINesetm = lapply(gslist, match, table=deINgs, nomatch=0)
     MSabsT <- MSTop <- matrix(NA, length(gslistINesetm), NI + 1) 
@@ -198,11 +198,11 @@ if (! is.null(dseed)) set.seed(dseed)
                                                 colMeans(X, na.rm=TRUE) * sqrt(nrow(X))
                                                })
             }                                               
-    if (paral && require(doParallel) && require(foreach) && require(doRNG)) {
-        ncores = detectCores()
+    if (paral && requireNamespace("doParallel", quietly=TRUE) && requireNamespace("parallel", quietly=TRUE)) {
+        ncores = parallel::detectCores()
         if (!is.null(ncr)) ncores = min(ncores, ncr)
-        clust = makeCluster(ncores)
-        registerDoParallel(clust)
+        clust = parallel::makeCluster(ncores)
+        doParallel::registerDoParallel(clust)
         tryCatch({
         parRes = foreach(ite = 1:(NI + 1), .combine="c", .packages="limma") %dorng% {
             Sres <- gsScoreFun(G, block)                                   
@@ -216,7 +216,7 @@ if (! is.null(dseed)) set.seed(dseed)
         MSTop[] = parRes[,evenCol]
         rm(parRes)
         }, 
-        finally = stopCluster(clust)
+        finally = parallel::stopCluster(clust)
         )
     } else {
         for (ite in 1:(NI + 1)) {
