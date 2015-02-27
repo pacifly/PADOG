@@ -3,7 +3,10 @@ Version: 2.1.0
 Date: 2012-09-10
 Title: Pathway Analysis with Down-weighting of Overlapping Genes
         (PADOG)
-Author: Adi Laurentiu Tarca <atarca@med.wayne.edu>
+Authors@R: c(
+    person("Adi", "Tarca", "Laurentiu", email="atarca@med.wayne.edu", role=c("aut","cre")),
+    person("Zhonghui", "Xu", email="zhonghui.xu@gmail.com", role=c("aut","cre"))
+    )
 Depends: R (>= 2.14.0), KEGGdzPathwaysGEO, graphics, limma,
         AnnotationDbi, Biobase, methods, nlme, GSA,KEGG.db
 Suggests: parallel

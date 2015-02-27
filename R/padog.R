@@ -2,13 +2,9 @@
 padog<-function(esetm=NULL,group=NULL,paired=FALSE,block=NULL,gslist="KEGG.db",organism="hsa",annotation=NULL,gs.names=NULL,NI=1000,plots=FALSE,targetgs=NULL,Nmin=3,verbose=TRUE,
                 paral = FALSE, dseed = NULL, ncr = NULL){
 
-#load needed packages
-    require(limma)
-
 #initialize the gslist if using KEGG
     if (length(gslist) == 1 && gslist == "KEGG.db") {
         stopifnot(nchar(organism) == 3)
-        require(KEGG.db)
         pw2id = as.list(KEGGPATHID2EXTID) 
         gslist = pw2id[grep(organism, names(pw2id))]
         names(gslist) = sub(paste("^",organism,sep=""), "", names(gslist))

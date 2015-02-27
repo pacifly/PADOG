@@ -1,9 +1,13 @@
 
+#' @export
+#'
+#' @importFrom limma lmFit makeContrasts contrasts.fit eBayes topTable
+#' @importFrom AnnotationDbi get as.list keys
+#'
 filteranot=function(esetm=NULL,group=NULL,paired=FALSE,block=NULL,annotation=NULL,include.details=FALSE){
 
 Block=block
-require(limma)
-if(!is.null(annotation)){stopifnot(require(annotation,character.only=TRUE))}
+stopifnot(require(annotation,character.only=TRUE))
 
 if(!paired){
 G=factor(group)
@@ -28,7 +32,6 @@ aT1<-topTable(fit2,coef=1, number=dim(esetm)[1])
 }
 #annotate ids to ENTREZID
 aT1$ID=rownames(aT1) 
-require(annotation,character.only=TRUE)
 anpack=paste(unlist(strsplit(annotation,split=".db")),"ENTREZID",sep="")
 aT1<-aT1[aT1$ID%in%keys(get(anpack)),]
 aT1$ENTREZID=unlist(as.list(get(anpack)[aT1$ID]))
