@@ -33,9 +33,6 @@ Installation
     if (! "devtools" %in% ups) install.packages("devtools")
     devtools::install_github("pacifly/PADOG") 
     ```
-
-You may also want to install the data package: `biocLite("KEGGdzPathwaysGEO")`
-
 Documentation
 -------------
 
