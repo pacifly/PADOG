@@ -33,6 +33,7 @@ Installation
     if (! "devtools" %in% ups) install.packages("devtools")
     devtools::install_github("pacifly/PADOG") 
     ```
+
 Documentation
 -------------
 
