@@ -61,6 +61,7 @@ function:
 <<eval=TRUE, echo=TRUE,fig=TRUE,label=fig1>>=
 library(KEGGdzPathwaysGEO)
 library(PADOG)
+library(Biobase)
 set.seed(1)
 set="GSE9348"
 data(list=set,package="KEGGdzPathwaysGEO")
@@ -212,14 +213,14 @@ return(res[res$ID %in% targetGeneSets,])
 #if the package parallel is installed datasets are analyzed in parallel.
 #out=compPADOG(datasets=NULL,existingMethods=c("GSA","PADOG"),
  #mymethods=list(myRand=randomF),
- #gslist="KEGG.db",Nmin=3,NI=1000,plots=TRUE,verbose=FALSE)
+ #gslist="KEGG.db",Nmin=3,NI=1000,plots=FALSE,verbose=FALSE,use.parallel=TRUE,dseed=1,pkgs=c("GSA","PADOG"))
 
 #compare myRand against PADOG on 4 datasets only
 #mysets=data(package="KEGGdzPathwaysGEO")$results[,"Item"]
 mysets=c("GSE9348","GSE8671","GSE1297")
 out=compPADOG(datasets=mysets,existingMethods=c("PADOG"),
  mymethods=list(myRand=randomF),
- gslist="KEGG.db",Nmin=3,NI=40,plots=TRUE,verbose=FALSE)
+ gslist="KEGG.db",Nmin=3,NI=40,plots=TRUE,verbose=FALSE,use.parallel=FALSE,dseed=1,pkgs=NULL)
 
 print(out)
 
