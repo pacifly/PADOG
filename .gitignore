@@ -1,1 +1,8 @@
 .RData
+
+vignettes/*
+!vignettes/*.Rnw
+!vignettes/*.bib
+!vignettes/*.db
+
+

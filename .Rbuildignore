@@ -1,0 +1,9 @@
+vignettes/.*\.pdf$
+vignettes/.*\.tex$
+vignettes/.*\.R$
+vignettes/.*\.aux$
+vignettes/.*\.bbl$
+vignettes/.*\.out$
+vignettes/.*\.log$
+vignettes/.*\.blg$
+

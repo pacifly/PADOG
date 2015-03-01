@@ -100,7 +100,8 @@ verbose=TRUE,
 Nmin=3,
 NI=25,
 plots=FALSE,
-paral=TRUE)
+paral=TRUE,
+ncr=2)
 
 
 myr[1:20,]

@@ -1,0 +1,179 @@
+\begin{thebibliography}{19}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Badea et~al.(2008)Badea, Herlea, Dima, Dumitrascu, and
+  Popescu]{pmid19260470}
+L.~Badea, V.~Herlea, S.~O. Dima, T.~Dumitrascu, and I.~Popescu.
+\newblock {{C}ombined gene expression analysis of whole-tissue and
+  microdissected pancreatic ductal adenocarcinoma identifies genes specifically
+  overexpressed in tumor epithelia}.
+\newblock \emph{Hepatogastroenterology}, 55:\penalty0 2016--2027, 2008.
+
+\bibitem[Barth et~al.(2006)Barth, Kuner, Buness, Ruschhaupt, Merk, Zwermann,
+  Kaab, Kreuzer, Steinbeck, Mansmann, Poustka, Nabauer, and
+  Sultmann]{pmid17045896}
+A.~S. Barth, R.~Kuner, A.~Buness, M.~Ruschhaupt, S.~Merk, L.~Zwermann, S.~Kaab,
+  E.~Kreuzer, G.~Steinbeck, U.~Mansmann, A.~Poustka, M.~Nabauer, and
+  H.~Sultmann.
+\newblock {{I}dentification of a common gene expression signature in dilated
+  cardiomyopathy across independent microarray studies}.
+\newblock \emph{J. Am. Coll. Cardiol.}, 48:\penalty0 1610--1617, Oct 2006.
+
+\bibitem[Blalock et~al.(2004)Blalock, Geddes, Chen, Porter, Markesbery, and
+  Landfield]{pmid14769913}
+E.~M. Blalock, J.~W. Geddes, K.~C. Chen, N.~M. Porter, W.~R. Markesbery, and
+  P.~W. Landfield.
+\newblock {{I}ncipient {A}lzheimer's disease: microarray correlation analyses
+  reveal major transcriptional and tumor suppressor responses}.
+\newblock \emph{Proc. Natl. Acad. Sci. U.S.A.}, 101:\penalty0 2173--2178, Feb
+  2004.
+
+\bibitem[He et~al.(2005)He, Jazdzewski, Li, Liyanarachchi, Nagy, Volinia,
+  Calin, Liu, Franssila, Suster, Kloos, Croce, and de~la
+  Chapelle]{pmid16365291}
+H.~He, K.~Jazdzewski, W.~Li, S.~Liyanarachchi, R.~Nagy, S.~Volinia, G.~A.
+  Calin, C.~G. Liu, K.~Franssila, S.~Suster, R.~T. Kloos, C.~M. Croce, and
+  A.~de~la Chapelle.
+\newblock {{T}he role of micro{R}{N}{A} genes in papillary thyroid carcinoma}.
+\newblock \emph{Proc. Natl. Acad. Sci. U.S.A.}, 102:\penalty0 19075--19080, Dec
+  2005.
+
+\bibitem[Hong et~al.(2007)Hong, Ho, Eu, and Cheah]{pmid17317818}
+Y.~Hong, K.~S. Ho, K.~W. Eu, and P.~Y. Cheah.
+\newblock {{A} susceptibility gene set for early onset colorectal cancer that
+  integrates diverse signaling pathways: implication for tumorigenesis}.
+\newblock \emph{Clin. Cancer Res.}, 13:\penalty0 1107--1114, Feb 2007.
+
+\bibitem[Hong et~al.(2010)Hong, Downey, Eu, Koh, and Cheah]{pmid20143136}
+Y.~Hong, T.~Downey, K.~W. Eu, P.~K. Koh, and P.~Y. Cheah.
+\newblock {{A} 'metastasis-prone' signature for early-stage mismatch-repair
+  proficient sporadic colorectal cancer patients and its implications for
+  possible therapeutics}.
+\newblock \emph{Clin. Exp. Metastasis}, 27:\penalty0 83--90, Feb 2010.
+
+\bibitem[Hou et~al.(2010)Hou, Aerts, den Hamer, van Ijcken, den Bakker,
+  Riegman, van~der Leest, van~der Spek, Foekens, Hoogsteden, Grosveld, and
+  Philipsen]{pmid20421987}
+J.~Hou, J.~Aerts, B.~den Hamer, W.~van Ijcken, M.~den Bakker, P.~Riegman,
+  C.~van~der Leest, P.~van~der Spek, J.~A. Foekens, H.~C. Hoogsteden,
+  F.~Grosveld, and S.~Philipsen.
+\newblock {{G}ene expression-based classification of non-small cell lung
+  carcinomas and survival prediction}.
+\newblock \emph{PLoS ONE}, 5:\penalty0 e10312, 2010.
+
+\bibitem[Lenburg et~al.(2003)Lenburg, Liou, Gerry, Frampton, Cohen, and
+  Christman]{pmid14641932}
+M.~E. Lenburg, L.~S. Liou, N.~P. Gerry, G.~M. Frampton, H.~T. Cohen, and M.~F.
+  Christman.
+\newblock {{P}reviously unidentified changes in renal cell carcinoma gene
+  expression identified by parametric analysis of microarray data}.
+\newblock \emph{BMC Cancer}, 3:\penalty0 31, Nov 2003.
+
+\bibitem[Liang et~al.(2007)Liang, Dunckley, Beach, Grover, Mastroeni, Walker,
+  Caselli, Kukull, McKeel, Morris, Hulette, Schmechel, Alexander, Reiman,
+  Rogers, and Stephan]{pmid17077275}
+W.~S. Liang, T.~Dunckley, T.~G. Beach, A.~Grover, D.~Mastroeni, D.~G. Walker,
+  R.~J. Caselli, W.~A. Kukull, D.~McKeel, J.~C. Morris, C.~Hulette,
+  D.~Schmechel, G.~E. Alexander, E.~M. Reiman, J.~Rogers, and D.~A. Stephan.
+\newblock {{G}ene expression profiles in anatomically and functionally distinct
+  regions of the normal aged human brain}.
+\newblock \emph{Physiol. Genomics}, 28:\penalty0 311--322, Feb 2007.
+
+\bibitem[Pei et~al.(2009)Pei, Li, Fridley, Jenkins, Kalari, Lingle, Petersen,
+  Lou, and Wang]{pmid19732725}
+H.~Pei, L.~Li, B.~L. Fridley, G.~D. Jenkins, K.~R. Kalari, W.~Lingle,
+  G.~Petersen, Z.~Lou, and L.~Wang.
+\newblock {{F}{K}{B}{P}51 affects cancer cell response to chemotherapy by
+  negatively regulating {A}kt}.
+\newblock \emph{Cancer Cell}, 16:\penalty0 259--266, Sep 2009.
+
+\bibitem[Runne et~al.(2007)Runne, Kuhn, Wild, Pratyaksha, Kristiansen, Isaacs,
+  Regulier, Delorenzi, Tabrizi, and Luthi-Carter]{pmid17724341}
+H.~Runne, A.~Kuhn, E.~J. Wild, W.~Pratyaksha, M.~Kristiansen, J.~D. Isaacs,
+  E.~Regulier, M.~Delorenzi, S.~J. Tabrizi, and R.~Luthi-Carter.
+\newblock {{A}nalysis of potential transcriptomic biomarkers for {H}untington's
+  disease in peripheral blood}.
+\newblock \emph{Proc. Natl. Acad. Sci. U.S.A.}, 104:\penalty0 14424--14429, Sep
+  2007.
+
+\bibitem[Sabates-Bellver et~al.(2007)Sabates-Bellver, Van~der Flier, de~Palo,
+  Cattaneo, Maake, Rehrauer, Laczko, Kurowski, Bujnicki, Menigatti, Luz,
+  Ranalli, Gomes, Pastorelli, Faggiani, Anti, Jiricny, Clevers, and
+  Marra]{pmid18171984}
+J.~Sabates-Bellver, L.~G. Van~der Flier, M.~de~Palo, E.~Cattaneo, C.~Maake,
+  H.~Rehrauer, E.~Laczko, M.~A. Kurowski, J.~M. Bujnicki, M.~Menigatti, J.~Luz,
+  T.~V. Ranalli, V.~Gomes, A.~Pastorelli, R.~Faggiani, M.~Anti, J.~Jiricny,
+  H.~Clevers, and G.~Marra.
+\newblock {{T}ranscriptome profile of human colorectal adenomas}.
+\newblock \emph{Mol. Cancer Res.}, 5:\penalty0 1263--1275, Dec 2007.
+
+\bibitem[Sanchez-Palencia et~al.(2010)Sanchez-Palencia, Gomez-Morales,
+  Gomez-Capilla, Pedraza, Boyero, Rosell, and Farez-Vidal]{pmid20878980}
+A.~Sanchez-Palencia, M.~Gomez-Morales, J.~A. Gomez-Capilla, V.~Pedraza,
+  L.~Boyero, R.~Rosell, and M.~E. Farez-Vidal.
+\newblock {{G}ene expression profiling reveals novel biomarkers in nonsmall
+  cell lung cancer}.
+\newblock \emph{Int. J. Cancer}, Sep 2010.
+
+\bibitem[Stirewalt et~al.(2008)Stirewalt, Meshinchi, Kopecky, Fan,
+  Pogosova-Agadjanyan, Engel, Cronk, Dorcy, McQuary, Hockenbery, Wood,
+  Heimfeld, and Radich]{pmid17910043}
+D.~L. Stirewalt, S.~Meshinchi, K.~J. Kopecky, W.~Fan, E.~L.
+  Pogosova-Agadjanyan, J.~H. Engel, M.~R. Cronk, K.~S. Dorcy, A.~R. McQuary,
+  D.~Hockenbery, B.~Wood, S.~Heimfeld, and J.~P. Radich.
+\newblock {{I}dentification of genes with abnormal expression changes in acute
+  myeloid leukemia}.
+\newblock \emph{Genes Chromosomes Cancer}, 47:\penalty0 8--20, Jan 2008.
+
+\bibitem[Tarca et~al.(2012)Tarca, Draghici, Bhatti, and
+  Romero]{TarcaPADOG:2012}
+A.~L. Tarca, S.~Draghici, G.~Bhatti, and R.~Romero.
+\newblock Down-weighting overlapping genes improves gene set analysis.
+\newblock \emph{BMC Bionformatics}, accepted, 2012.
+
+\bibitem[Wallace et~al.(2008)Wallace, Prueitt, Yi, Howe, Gillespie, Yfantis,
+  Stephens, Caporaso, Loffredo, and Ambs]{pmid18245496}
+T.~A. Wallace, R.~L. Prueitt, M.~Yi, T.~M. Howe, J.~W. Gillespie, H.~G.
+  Yfantis, R.~M. Stephens, N.~E. Caporaso, C.~A. Loffredo, and S.~Ambs.
+\newblock {{T}umor immunobiological differences in prostate cancer between
+  {A}frican-{A}merican and {E}uropean-{A}merican men}.
+\newblock \emph{Cancer Res.}, 68:\penalty0 927--936, Feb 2008.
+
+\bibitem[Wang et~al.(2009)Wang, Roche, Yan, Finak, Evans, Metcalf, Hast, Hanna,
+  Wondergem, Furge, Irwin, Kim, Teh, Grinstein, Park, Marsden, and
+  Ohh]{pmid19252501}
+Y.~Wang, O.~Roche, M.~S. Yan, G.~Finak, A.~J. Evans, J.~L. Metcalf, B.~E. Hast,
+  S.~C. Hanna, B.~Wondergem, K.~A. Furge, M.~S. Irwin, W.~Y. Kim, B.~T. Teh,
+  S.~Grinstein, M.~Park, P.~A. Marsden, and M.~Ohh.
+\newblock {{R}egulation of endocytosis via the oxygen-sensing pathway}.
+\newblock \emph{Nat. Med.}, 15:\penalty0 319--324, Mar 2009.
+
+\bibitem[Zhang et~al.(2005)Zhang, James, Middleton, and Davis]{pmid15965975}
+Y.~Zhang, M.~James, F.~A. Middleton, and R.~L. Davis.
+\newblock {{T}ranscriptional analysis of multiple brain regions in
+  {P}arkinson's disease supports the involvement of specific protein
+  processing, energy metabolism, and signaling pathways, and suggests novel
+  disease mechanisms}.
+\newblock \emph{Am. J. Med. Genet. B Neuropsychiatr. Genet.}, 137B:\penalty0
+  5--16, Aug 2005.
+
+\bibitem[Zheng et~al.(2010)Zheng, Liao, Locascio, Lesniak, Roderick, Watt,
+  Eklund, Zhang-James, Kim, Hauser, Grunblatt, Moran, Mandel, Riederer, Miller,
+  Federoff, Wullner, Papapetropoulos, Youdim, Cantuti-Castelvetri, Young,
+  Vance, Davis, Hedreen, Adler, Beach, Graeber, Middleton, Rochet, and
+  Scherzer]{pmid20926834}
+B.~Zheng, Z.~Liao, J.~J. Locascio, K.~A. Lesniak, S.~S. Roderick, M.~L. Watt,
+  A.~C. Eklund, Y.~Zhang-James, P.~D. Kim, M.~A. Hauser, E.~Grunblatt, L.~B.
+  Moran, S.~A. Mandel, P.~Riederer, R.~M. Miller, H.~J. Federoff, U.~Wullner,
+  S.~Papapetropoulos, M.~B. Youdim, I.~Cantuti-Castelvetri, A.~B. Young, J.~M.
+  Vance, R.~L. Davis, J.~C. Hedreen, C.~H. Adler, T.~G. Beach, M.~B. Graeber,
+  F.~A. Middleton, J.~C. Rochet, and C.~R. Scherzer.
+\newblock {{P}{G}{C}-1?, a potential therapeutic target for early intervention
+  in {P}arkinson's disease}.
+\newblock \emph{Sci Transl Med}, 2:\penalty0 52ra73, Oct 2010.
+
+\end{thebibliography}
