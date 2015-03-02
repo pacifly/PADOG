@@ -1,4 +1,6 @@
 
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("ini", "outi"))
+
 #' @export
 #'
 #' @importFrom AnnotationDbi get as.list 
