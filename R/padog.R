@@ -251,6 +251,8 @@ padog <- function(esetm = NULL, group = NULL, paired = FALSE, block = NULL, gsli
             rm(parRes)
         }, finally = parallel::stopCluster(clust))
     } else {
+        if (paral) message("Execute in sequential! Packages 'doParallel' and 'parallel' 
+                           needed for parallelization!")
         for (ite in 1:(NI + 1)) {
             Sres <- gsScoreFun(G, block)
             MSabsT[, ite] <- Sres[1, ]
