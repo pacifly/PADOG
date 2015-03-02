@@ -8,7 +8,9 @@ filteranot = function(esetm = NULL, group = NULL, paired = FALSE, block = NULL, 
     include.details = FALSE) {
     
     Block = block
-    stopifnot(require(annotation, character.only = TRUE))
+    if (! annotation %in% c("hgu133a.db", "hgu133plus2.db")) {
+        stopifnot(require(annotation, character.only = TRUE))
+    }
     
     if (!paired) {
         G = factor(group)

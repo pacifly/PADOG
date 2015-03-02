@@ -1,4 +1,8 @@
 
+#' @import hgu133a.db hgu133plus2.db KEGG.db nlme
+#' @import KEGGdzPathwaysGEO methods
+NULL
+
 #' @export
 #'
 #' @importFrom limma lmFit makeContrasts contrasts.fit eBayes topTable
@@ -47,7 +51,9 @@ padog <- function(esetm = NULL, group = NULL, paired = FALSE, block = NULL, gsli
         stopifnot(targetgs %in% names(gslist))
     }
     if (!is.null(annotation)) {
-        stopifnot(require(annotation, character.only = TRUE))
+        if (! annotation %in% c("hgu133a.db","hgu133plus2.db")) {
+            stopifnot(require(annotation, character.only = TRUE))
+        }
         stopifnot(sum(rownames(esetm) %in% mappedkeys(get(paste(substr(annotation, 
             1, nchar(annotation) - 3), "ENTREZID", sep = "")))) > 4)
     } else {

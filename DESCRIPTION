@@ -1,6 +1,6 @@
 Package: PADOG
 Version: 2.1.0
-Date: 2012-09-10
+Date: 2015-03-01
 Title: Pathway Analysis with Down-weighting of Overlapping Genes
     (PADOG)
 Authors@R: c(
@@ -12,9 +12,7 @@ Authors@R: c(
 Depends:
     R (>= 2.14.0),
     KEGGdzPathwaysGEO,
-    methods,
-    KEGG.db,
-    nlme
+    methods
 Suggests:
     doParallel,
     parallel
@@ -36,7 +34,9 @@ Imports:
     foreach,
     doRNG,
     hgu133plus2.db,
-    hgu133a.db
+    hgu133a.db,
+    KEGG.db,
+    nlme
 LazyLoad: yes
 biocViews: Microarray, OneChannel, TwoChannel
 Packaged: 2014-10-14 02:58:26 UTC; biocbuild

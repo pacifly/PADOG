@@ -16,7 +16,7 @@ compPADOG = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymet
         files = datasets
     }
     
-    data(list = files, package = "KEGGdzPathwaysGEO")
+    data(list = files, package = "KEGGdzPathwaysGEO", envir=environment())
     
     getdataaslist = function(x) {
         x = get(x)
