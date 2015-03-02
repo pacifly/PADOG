@@ -5,7 +5,8 @@
     This function helps to deal with multiple probesets/probes per gene prior to geneset analysis.
 }
 \usage{
-filteranot(esetm=NULL,group=NULL,paired=FALSE,block=NULL,annotation=NULL,include.details=FALSE)
+filteranot(esetm=NULL,group=NULL,paired=FALSE,block=NULL,annotation=NULL,
+           include.details=FALSE)
 }
 \arguments{
   \item{esetm}{A matrix containing log transfomed and normalized gene expression data. Rows correspond to genes and columns to samples.  Rownames of esetm need to be valid 

@@ -6,7 +6,9 @@ This is a general purpose gene set analysis method that downplays the importance
 The package provides also a benchmark for gene set analysis in terms of sensitivity and ranking using 24 public datasets.
 }
 \usage{
-padog(esetm=NULL,group=NULL,paired=FALSE,block=NULL,gslist="KEGG.db",organism="hsa",annotation=NULL,gs.names=NULL,NI=1000,plots=FALSE,targetgs=NULL,Nmin=3,verbose=TRUE,paral=FALSE,dseed=NULL,ncr=NULL)
+padog(esetm=NULL,group=NULL,paired=FALSE,block=NULL,gslist="KEGG.db",organism="hsa",
+      annotation=NULL,gs.names=NULL,NI=1000,plots=FALSE,targetgs=NULL,Nmin=3,
+      verbose=TRUE,paral=FALSE,dseed=NULL,ncr=NULL)
 }
 \arguments{
   \item{esetm}{A matrix containing log transfomed and normalized gene expression data. Rows correspond to genes and columns to samples.

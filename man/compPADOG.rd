@@ -6,8 +6,9 @@ This is a general purpose function to compare a given gene set analysis method i
 public datasets.
 }
 \usage{
-compPADOG(datasets=NULL,existingMethods=c("GSA","PADOG"),mymethods=NULL,gs.names=NULL,gslist="KEGG.db",organism="hsa",Nmin=3,NI=1000,
-          use.parallel=TRUE,ncr=NULL, pkgs="GSA", expVars=NULL, dseed=NULL,plots=FALSE,verbose=FALSE)
+compPADOG(datasets=NULL,existingMethods=c("GSA","PADOG"),mymethods=NULL,gs.names=NULL,
+          gslist="KEGG.db",organism="hsa",Nmin=3,NI=1000,use.parallel=TRUE,ncr=NULL,
+          pkgs="GSA", expVars=NULL, dseed=NULL,plots=FALSE,verbose=FALSE)
 }
 \arguments{
   \item{datasets}{A character vector with valid names of datasets to use from the PADOGsets package. If left NULL all datasets avalibale in PADOGsets will be used.
@@ -111,15 +112,15 @@ return(res[res$ID \%in\% targetGeneSets,])
 #run the analysis on all 24 datasets and compare the new method "myRand" with 
 #PADOG and GSA (if installed) (chosen as reference since is listed first in the existingMethods)
 #out=compPADOG(datasets=NULL,existingMethods=c("GSA","PADOG"),
- #mymethods=list(myRand=randomF),
- #gslist="KEGG.db",Nmin=3,NI=1000,plots=FALSE,verbose=FALSE,use.parallel=TRUE,dseed=1,pkgs=c("GSA","PADOG"))
+ #mymethods=list(myRand=randomF),gslist="KEGG.db",Nmin=3,NI=1000,
+ #plots=FALSE,verbose=FALSE,use.parallel=TRUE,dseed=1,pkgs=c("GSA","PADOG"))
 
 #compare myRand against PADOG on 3 datasets only
 #mysets=data(package="PADOGsets")$results[,"Item"]
 mysets=c("GSE9348","GSE8671","GSE1297")
 out=compPADOG(datasets=mysets,existingMethods=c("PADOG"),
- mymethods=list(myRand=randomF),
- gslist="KEGG.db",Nmin=3,NI=20,plots=FALSE,verbose=FALSE,use.parallel=FALSE,dseed=1,pkgs=NULL)
+  mymethods=list(myRand=randomF),gslist="KEGG.db",Nmin=3,NI=20,
+  plots=FALSE,verbose=FALSE,use.parallel=FALSE,dseed=1,pkgs=NULL)
 
 }
 
