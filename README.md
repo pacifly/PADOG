@@ -24,11 +24,13 @@ Installation
 
     ``` r
     ups = installed.packages()[,"Package"]
-    biocp = c("KEGGdzPathwaysGEO", "KEGG.db", 
-        "limma", "AnnotationDbi", "Biobase", "hgu133plus2.db", "hgu133a.db")
+    biocp = c("KEGGdzPathwaysGEO", "KEGG.db", "limma", "AnnotationDbi", 
+              "Biobase", "hgu133plus2.db", "hgu133a.db")
     todos = setdiff(biocp, ups)
-    source("http://bioconductor.org/biocLite.R")
-    biocLite(todos)
+    if (length(todos) > 0) {
+        source("http://bioconductor.org/biocLite.R")
+        biocLite(todos)
+    }
 
     if (! "devtools" %in% ups) install.packages("devtools")
     devtools::install_github("pacifly/PADOG") 
