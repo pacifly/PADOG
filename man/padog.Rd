@@ -86,7 +86,8 @@ organism="hsa",
 verbose=TRUE,
 Nmin=3,
 NI=25,
-plots=FALSE)
+plots=FALSE,
+dseed=1)
 
 
 myr2=padog(
@@ -102,6 +103,7 @@ verbose=TRUE,
 Nmin=3,
 NI=25,
 plots=FALSE,
+dseed=1,
 paral=TRUE,
 ncr=2)
 
