@@ -234,11 +234,18 @@ padog <- function(esetm = NULL, group = NULL, paired = FALSE, block = NULL, gsli
         ncores = parallel::detectCores()
         if (!is.null(ncr)) 
             ncores = min(ncores, ncr)
-        clust = parallel::makeCluster(ncores)
+        if (verbose) {
+            clust = parallel::makeCluster(ncores, outfile="")
+        } else {
+            clust = parallel::makeCluster(ncores)
+        }
         doParallel::registerDoParallel(clust)
         tryCatch({
             parRes = foreach(ite = 1:(NI + 1), .combine = "c", .packages = "limma") %dorng% 
                 {
+                  if (verbose && (ite %% 10 == 0)) {
+                      cat(ite, "/", NI, "\n")
+                  }
                   Sres <- gsScoreFun(G, block)
                   tmp <- list(t(Sres))
                   names(tmp) <- ite
@@ -257,9 +264,8 @@ padog <- function(esetm = NULL, group = NULL, paired = FALSE, block = NULL, gsli
             Sres <- gsScoreFun(G, block)
             MSabsT[, ite] <- Sres[1, ]
             MSTop[, ite] <- Sres[2, ]
-            if (verbose && (ite%%10 == 0)) {
-                cat(paste(ite, "/", NI))
-                cat("\n")
+            if (verbose && (ite %% 10 == 0)) {
+                cat(ite, "/", NI, "\n")
             }
         }
     }
