@@ -9,9 +9,16 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("ini", "outi"))
 #' @importFrom foreach foreach %dopar% %:%
 #'
 compFDR = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymethods = NULL, 
-    gs.names = NULL, gslist = "KEGG.db", organism = "hsa", Nmin = 3, NI = 1000, use.parallel = TRUE, 
-    ncr = NULL, pkgs = "GSA", expVars = NULL, dseed = NULL, Npsudo = 20, plots = FALSE, verbose = FALSE) {
-    
+    gs.names = NULL, gslist = "KEGG.db", organism = "hsa", Nmin = 3, NI = 1000, 
+    use.parallel = TRUE, ncr = NULL, pkgs = "GSA", expVars = NULL, dseed = NULL, 
+    Npsudo = 20, FDRmeth = c("BH","Permutation"), plots = FALSE, verbose = FALSE) {
+   
+    Npsudo = as.integer(Npsudo[1])
+    Nmin = as.integer(Nmin[1])
+    NI = as.integer(NI[1])
+    stopifnot(Npsudo >= 0, Nmin > 0, NI > 1)
+    FDRmeth = match.arg(FDRmeth)
+
     if (is.null(datasets)) {
         files = data(package = "KEGGdzPathwaysGEO")$results[, "Item"]
     } else {
@@ -34,12 +41,14 @@ compFDR = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymetho
         res$Method = "PADOG"
         res$Rank = (1:nrow(res))/nrow(res) * 100
         res$P = res$Ppadog
-        # res$FDR = p.adjust(res$P, "fdr")
-        res$FDR = res$FDRpadog
+        res$FDR = switch(FDRmeth,
+                         BH = p.adjust(res$P, "fdr"),
+                         Permutation = res$FDRpadog
+        )
         
         rownames(res) = NULL
         pidx = res$ID %in% list$targetGeneSets
-        list(targ = rbind(res[pidx, ], padog2absmt(res, list, estFDR=TRUE)), pval = out$pval)
+        list(targ = rbind(res[pidx, ], padog2absmt(res, list, estFDR=FDRmeth)), pval = out$pval)
     }
     
     
@@ -96,12 +105,22 @@ compFDR = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymetho
         pres = do.call(cbind, pres)
         
         res = data.frame(ID = names(mygslist), P = pres[,1], Dataset = list$dataset, stringsAsFactors = FALSE)
+
+        if (Npsudo > 0) {
+            res$FDRgsa = getFDR(pres[,-1,drop=FALSE], pres[,1]) 
+        } else {
+            res$FDRgsa = NA
+        }
+
         rownames(pres) = res$ID
         res$Method = "GSA"
         ord = order(res$P)
         res = res[ord, ]
         res$Rank = rank(res$P)/nrow(res) * 100
-        res$FDR = p.adjust(res$P, "fdr")
+        res$FDR = switch(FDRmeth,
+                         BH = p.adjust(res$P, "fdr"),
+                         Permutation = res$FDRgsa
+        )
         rownames(res) = NULL
 
         pidx = res$ID %in% list$targetGeneSets
@@ -140,12 +159,22 @@ compFDR = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymetho
         rownames(tmp) = NULL
         tmp
     }
-    
+   
+    aggP = function(zdat) {
+        if (is.matrix(zdat)) {
+            
+        } else {
+        
+        }
+    }
+
     dfr = list()
-    
+    psim = list()
+
     if ("PADOG" %in% names(GSMok)) {
-        dfr[["PADOG"]] = aggFun(lapply(files, GSMok[["PADOG"]], mygslist = gslist, 
-            minsize = Nmin))
+        tmpr = lapply(files, GSMok[["PADOG"]], mygslist = gslist, minsize = Nmin)
+        dfr[["PADOG"]] = aggFun(lapply(tmpr, `[[`, "targ"))
+        if(Npsudo > 0L) { psim[["PADOG"]] = aggP(lapply(tmpr, `[[`, "pval")) }
         GSMok = GSMok[names(GSMok) != "PADOG"]
     }
     
