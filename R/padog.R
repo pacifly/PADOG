@@ -282,17 +282,26 @@ padog <- function(esetm = NULL, group = NULL, paired = FALSE, block = NULL, gsli
     
     # compute p-values
     mff = function(x) {
-        if (!all(is.na(x))) {
             mean(x[-1] > x[1], na.rm = TRUE)
-        } else {
-            NA
-        }
     }
+
     PSabsT = apply(MSabsT, 1, mff)
     PSTop = apply(MSTop, 1, mff)
     PSabsT[PSabsT == 0] <- 1/NI/100
     PSTop[PSTop == 0] <- 1/NI/100
     
+    # estimate FDR
+    pval = list()
+    fdrs = lapply(list(MSabsT, MSTop), function(x) {
+        p1 = rowMeans(x[,-1,drop=FALSE] > x[,1], na.rm=TRUE)
+        x = x[,-1,drop=FALSE]
+        p0 = sapply(1:ncol(x), function(z) rowMeans(x[,-z,drop=FALSE] > x[,z], na.rm=TRUE))
+        pval <<- c(pval, list(p0))
+        getFDR(p0, p1)
+    }
+    names(fdrs) = c("FDRmeanAbsT", "FDRpadog")
+    names(pval) = c("P0meanAbsT", "P0padog")
+
     # do plot the scores for the star pathway
     if (plots) {
         par(mfrow = c(2, 2))
@@ -330,7 +339,9 @@ padog <- function(esetm = NULL, group = NULL, paired = FALSE, block = NULL, gsli
         length(intersect(rownames(esetm), x))
     }))
     res = data.frame(Name = myn, ID = names(gslist), Size = SIZE, meanAbsT0, padog0, 
-        PmeanAbsT = PSabsT, Ppadog = PSTop, stringsAsFactors = FALSE)
-    res = res[order(res$Ppadog, -res$padog0), ]
-    res
+        PmeanAbsT = PSabsT, Ppadog = PSTop, fdrs, stringsAsFactors = FALSE)
+    ord = order(res$Ppadog, -res$padog0)
+    res = res[ord, ]
+    pval = lapply(pval, function(x) {x = x[ord,,drop=FALSE]; rownames(x) = res$ID; x})
+    list(res=res, pval=pval)
 } 

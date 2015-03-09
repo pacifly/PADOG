@@ -8,9 +8,9 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("ini", "outi"))
 #' @importFrom GSA GSA
 #' @importFrom foreach foreach %dopar% %:%
 #'
-compPADOG = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymethods = NULL, 
+compFDR = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymethods = NULL, 
     gs.names = NULL, gslist = "KEGG.db", organism = "hsa", Nmin = 3, NI = 1000, use.parallel = TRUE, 
-    ncr = NULL, pkgs = "GSA", expVars = NULL, dseed = NULL, plots = FALSE, verbose = FALSE) {
+    ncr = NULL, pkgs = "GSA", expVars = NULL, dseed = NULL, Npsudo = 20, plots = FALSE, verbose = FALSE) {
     
     if (is.null(datasets)) {
         files = data(package = "KEGGdzPathwaysGEO")$results[, "Item"]
@@ -23,21 +23,23 @@ compPADOG = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymet
     padogF = function(set, mygslist, minsize) {
         list = getdataaslist(set)
         
-        res = padog(esetm = list$dat.m, group = list$ano$Group, paired = list$design == 
+        out = padog(esetm = list$dat.m, group = list$ano$Group, paired = list$design == 
             "Paired", block = list$ano$Block, annotation = list$annotation, gslist = mygslist, 
             verbose = verbose, Nmin = minsize, NI = NI, plots = FALSE, paral = use.parallel, 
             ncr = ncr, dseed = dseed)
-        res = res$res
+
+        res = out$res
+        res$Dataset = list$dataset
         
-        res$Dataset <- list$dataset
-        
-        res$Method <- "PADOG"
-        res$Rank = (1:dim(res)[1])/dim(res)[1] * 100
+        res$Method = "PADOG"
+        res$Rank = (1:nrow(res))/nrow(res) * 100
         res$P = res$Ppadog
-        res$FDR = p.adjust(res$P, "fdr")
+        # res$FDR = p.adjust(res$P, "fdr")
+        res$FDR = res$FDRpadog
         
-        rownames(res) <- NULL
-        rbind(res[res$ID %in% list$targetGeneSets, ], padog2absmt(res, list))
+        rownames(res) = NULL
+        pidx = res$ID %in% list$targetGeneSets
+        list(targ = rbind(res[pidx, ], padog2absmt(res, list, estFDR=TRUE)), pval = out$pval)
     }
     
     
@@ -58,32 +60,52 @@ compPADOG = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymet
                 # drop from esetm all duplicate genes and genes not in the genesets
                 esetm = esetm[rownames(esetm) %in% aT1$ID, ]
                 rownames(esetm) <- aT1$ENTREZID[match(rownames(esetm), aT1$ID)]
-            }  
-        # Run GSA maxmean
-        nc = table(list$ano$Group)["c"]
-        nd = table(list$ano$Group)["d"]
-        if (list$design == "Not Paired") {
-            yy = c(rep(1, nc), rep(2, nd))
-        } else {
-            block = as.numeric(factor(list$ano$Block))
-            block[duplicated(block)] <- (-block[duplicated(block)])
-            yy = block
+            } 
+
+        runGSA = function(group) { 
+            # Run GSA maxmean
+            tab = table(group)
+            nc = tab["c"]
+            nd = tab["d"]
+            if (list$design == "Not Paired") {
+                yy = c(rep(1, nc), rep(2, nd))
+            } else {
+                yy = as.numeric(factor(block))
+                yy[duplicated(yy)] = (-yy[duplicated(yy)])
+            }
+            
+            resgsa = GSA(x = esetm, y = yy, genesets = mygslist, genenames = rownames(esetm), 
+                method = "maxmean", resp.type = ifelse(list$design == "Not Paired", "Two class unpaired", 
+                    "Two class paired"), censoring.status = NULL, random.seed = 1, knn.neighbors = 10, 
+                s0 = NULL, s0.perc = NULL, minsize = minsize, maxsize = 1000, restand = TRUE, 
+                restand.basis = c("catalog", "data"), nperms = NI)
+            2 * apply(cbind(resgsa$pvalues.lo, resgsa$pvalues.hi), 1, min)
         }
         
-        resgsa = GSA(x = esetm, y = yy, genesets = mygslist, genenames = rownames(esetm), 
-            method = "maxmean", resp.type = ifelse(list$design == "Not Paired", "Two class unpaired", 
-                "Two class paired"), censoring.status = NULL, random.seed = 1, knn.neighbors = 10, 
-            s0 = NULL, s0.perc = NULL, minsize = minsize, maxsize = 1000, restand = TRUE, 
-            restand.basis = c("catalog", "data"), nperms = NI)
+        B = factor(block)
+        o = order(B)
+        pgrps = lapply(1:(Npsudo + 1), function(x) {
+            G = group
+            if (x > 1) {
+                G[o] = unlist(tapply(G, B, sample, simplify=FALSE))
+            }
+            G
+        })
+
+        pres = lapply(pgrps, runGSA)
+        pres = do.call(cbind, pres)
         
-        res = data.frame(ID = names(gslist), P = 2 * apply(cbind(resgsa$pvalues.lo, 
-            resgsa$pvalues.hi), 1, min), Dataset = list$dataset, stringsAsFactors = FALSE)
-        res$Method <- "GSA"
-        res = res[order(res$P), ]
-        res$Rank = rank(res$P)/dim(res)[1] * 100
+        res = data.frame(ID = names(mygslist), P = pres[,1], Dataset = list$dataset, stringsAsFactors = FALSE)
+        rownames(pres) = res$ID
+        res$Method = "GSA"
+        ord = order(res$P)
+        res = res[ord, ]
+        res$Rank = rank(res$P)/nrow(res) * 100
         res$FDR = p.adjust(res$P, "fdr")
-        rownames(res) <- NULL
-        res[res$ID %in% list$targetGeneSets, ]
+        rownames(res) = NULL
+
+        pidx = res$ID %in% list$targetGeneSets
+        list(targ = res[pidx, ], pval = pres[,-1,drop=FALSE])
     }
     
     defGSmethods = list(GSA = gsaF, PADOG = padogF)
