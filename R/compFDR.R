@@ -1,6 +1,152 @@
 
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("ini", "outi"))
 
+
+#' Benchmark for gene set analysis methods using 24 datasets
+#'
+#' This is a general purpose function to compare a given gene set analysis method in terms of 
+#' sensitivity, ranking and fdr against PADOG and GSA (if installed) using 24 public datasets.
+#'
+#' The user defined gene set analysis method should return a list with elements "targ" containing 
+#' the analysis statistics for the target gene sets on a given data set, and "pval" containing
+#' a matrix of null p values each column of which corresponds to the p values of all gene sets
+#' applying the gene set analysis method on permutated phenotype (i.e. group label). The rownames
+#' of the matrix are the gene set IDs; the number of column corresponds to argument \code{Npsudo}.
+#' If \code{Npsudo = 0}, the "pval" element can be omitted and null p values / fdr will not be
+#' compared between the methods. For "PADOG" and "AbsmT", two methods ("BH" and "Permutation") of 
+#' estimating fdr are available regardless of the value of \code{Npsudo} since null p values can be
+#' accessed from the method algorithm itself. For "GSA", the "Permutation" method is only available 
+#' when \code{Npsudo > 0}. 
+#'
+#' @param datasets A character vector with valid names of datasets to use from the PADOGsets 
+#'   package. If left NULL all datasets avalibale in PADOGsets will be used.
+#' @param existingMethods A character vector with one or more of the predefined methods 
+#'   c("GSA","PADOG"). The first is used as reference method.
+#' @param mymethods A list whose elements are valid functions implementing gene set analysis 
+#'   methods. See \code{Details} and \code{Examples} for what arguments the functions have to 
+#'   take in and what kind of output they need to return.
+#' @param gs.names A character vector giving additional information about each gene set. For 
+#'   instance when gene seta are pathways, the full name of the pathway would be a meaningful
+#'   gene set name.
+#' @param gslist Either the value "KEGG.db" or a list with the gene sets. If set to "KEGG.db",
+#'   then gene sets will be made of all KEGG pathways for human since all datasets available 
+#'   in PADOG are for human.
+#' @param organism A three letter string giving the name of the organism supported by the 
+#'   "KEGG.db" package.
+#' @param Nmin The minimum size of gene sets to be included in the analysis for all methods.
+#' @param NI Number of iterations to determine the gene set score significance p-values in 
+#'   PADOG and GSA methods.
+#' @param use.parallel If set to TRUE and multiple CPU cores are available, the parallelization 
+#'   will be distributed either over the \code{NI} iterations for "PADOG", or over 
+#'   datasets/methods combination otherwise.
+#' @param ncr The number of CPU cores used when \code{use.parallel} set to TRUE. Default is 
+#'   to use all CPU cores detected.
+#' @param pkgs Character vector of packages that the \code{existingMethods} and \code{mymethods} 
+#'   depend on (e.g. \code{NULL} for "PADOG", "GSA" for "GSA"). Consult the \code{.packages} 
+#'   argument in \code{foreach} function from \code{foreach} package.
+#' @param expVars Character vector of variables to export. Consult the \code{.export} argument
+#'   in \code{foreach} function from \code{foreach} package.
+#' @param dseed Optional initial seed for random number generator (integer) used in \code{padog}.
+#' @param Npsudo The number of permutations on phenotype (i.e. group label) to obtain null p
+#'   values and estimate fdr. Set to 0 if not interested in estimating fdr from permutation.
+#' @param FDRmeth The method used to estimate fdr; "BH" for Benjamini & Hochberg, "Permutation"
+#'   for estimation based on observed and null p values.
+#' @param plots If set to TRUE will plot the p values, ranks, the ranks differences w.r.t. 
+#'   reference, null p values and fdr when applicable.
+#' @param verbose This argument will be passed to PADOG and AbsmT methods. If set to TRUE
+#'   it will show the iterations performed so far (when \code{use.parallel = TRUE}, this only
+#'   works for command line R, not Rgui).
+#' @return A list of elements "summary","ranks","pvalues","qvalues" and "nullp" (if \code{Npsudo > 0}). 
+#'   "summary" is a data frame containing: \code{Method} is the name of the gene set analysis method;
+#'     \code{p geomean} geometric mean of nominal p-values for the target gene sets (gene sets expected 
+#'     to be relevant); \code{p med} median of nominal p-values for the target genesets; \code{ \% p<0.05} 
+#'     is the fraction of target gene sets significant at 0.05 level (this is the sensitivity); 
+#'     \code{ \% q<0.05} is the fraction of target gene sets significant at 0.05 level after FDR correction;
+#'     \code{rank mean} mean rank of the target gene sets; \code{rank med} median rank of the target gene sets;
+#'     \code{p Wilcox.} p value from a Wilcoxon test paired at dataset level comparing the rank of target gene sets;
+#'     \code{p LME} p value from a linear mixed effects (LME) model which unlike the Wilcoxon test above 
+#'       accounts for the fact that ranks for the same gene set may be correlated;
+#'     \code{coef LME} Coefficient from the LME model giving the difference in ranks of the target gene 
+#'       sets between the current gene set analysis method and the reference method (the first method 
+#'       in the \code{existingMethods} argument.
+#'   "ranks", "pvalues", "qvalues": a list of elements containing for each method the ranks (
+#'     nominal p values, fdr q values) of the target gene sets in the corresponding data sets.
+#'   "nullp": a list of elements containing for each method the null p values (a list of two
+#'     elements "ap" for all gene sets and "tp" for target gene sets) pooled over all data sets. 
+#' @examples
+#' #compare a new geneset analysis method with PADOG and GSA
+#' 
+#' #define your new gene set analysis method that takes as input:
+#' #set- the name of dataset file from the PADOGsetspackage
+#' #mygslist - a list with the genesets
+#' #minsize- minimum number of genes in a geneset to be considered for analysis 
+#' 
+#' randomF=function(set,mygslist,minsize){
+#' set.seed(1)
+#' #this loads the dataset in an ExpressionSet object called x
+#' data(list=set,package="KEGGdzPathwaysGEO")
+#' x=get(set)
+#' 
+#' #Extract from the dataset the required info to be passed to padog
+#' exp=experimentData(x);
+#' dat.m=exprs(x)
+#' ano=pData(x)
+#' dataset= exp@@name
+#' design= notes(exp)$design
+#' annotation= paste(x@@annotation,".db",sep="")
+#' targetGeneSets= notes(exp)$targetGeneSets
+#' 
+#' 
+#' #get rid of duplicates probesets per ENTREZ ID by keeping the probeset 
+#' #with smallest p-value (computed using limma) 
+#' aT1=filteranot(esetm=dat.m,group=ano$Group,paired=(design=="Paired"),
+#'  block=ano$Block,annotation=annotation)
+#' #create an output dataframe for this toy method with random gene set p-values
+#' mygslistSize=unlist(lapply(mygslist,function(x){length(intersect(aT1$ENTREZID,x))}))
+#' res=data.frame(ID=names(mygslist),P=runif(length(mygslist)),
+#'  Size=mygslistSize,stringsAsFactors=FALSE)
+#' res$FDR=p.adjust(res$P,"fdr")
+#' #drop genesets with less than minsize genes in the current dataset 
+#' res=res[res$Size>=minsize,]
+#' #obtain null p value matrix
+#' nullp = sapply(1:20, function(x)  runif(nrow(res)))
+#' rownames(nullp) = res$ID
+#' #compute ranks
+#' res$Rank=rank(res$P)/dim(res)[1]*100
+#' #needed to compare ranks between methods; must be the same as given 
+#' #in mymethods argument "list(myRand="
+#' res$Method="myRand";
+#' #needed because comparisons of ranks between methods is paired at dataset level
+#' res$Dataset<-dataset;
+#' #output only result for the targetGeneSets 
+#' #which are gene sets expected to be relevant in this dataset
+#' return(list(targ = res[res$ID \%in\% targetGeneSets,], pval = nullp))
+#' }
+#' 
+#' #run the analysis on all 24 datasets and compare the new method "myRand" with 
+#' #PADOG and GSA (if installed) (chosen as reference since is listed first in the existingMethods)
+#' \dontrun{
+#'   out = compFDR(datasets=NULL,existingMethods=c("GSA","PADOG"),
+#'     mymethods=list(myRand=randomF),gslist="KEGG.db",Nmin=3,NI=1000,Npsudo=20, FDRmeth="P",
+#'     plots=FALSE,verbose=FALSE,use.parallel=TRUE,dseed=1,pkgs=c("GSA","PADOG"))
+#' }
+#' 
+#' #compare myRand against PADOG on 3 datasets only
+#' #mysets=data(package="PADOGsets")$results[,"Item"]
+#' mysets=c("GSE9348","GSE8671","GSE1297")
+#' out = compFDR(datasets=mysets,existingMethods=c("PADOG"),
+#'   mymethods=list(myRand=randomF),gslist="KEGG.db",Nmin=3,NI=20,Npsudo=0,
+#'   plots=FALSE,verbose=FALSE,use.parallel=FALSE,dseed=1,pkgs=NULL)
+#' 
+#' @references Adi L. Tarca, Sorin Draghici, Gaurav Bhatti, Roberto Romero. Down-weighting 
+#'    overlapping genes improves gene set analysis. BMC Bioinformatics, 2012.
+#' @author
+#'    Adi Laurentiu Tarca \email{atarca@@med.wayne.edu},
+#'    Zhonghui Xu \email{zhonghui.xu@@gmail.com}
+#'
+#' @seealso See \code{\link{compPADOG}} for back-compatibility (i.e. no comparing fdr).
+#' @keywords nonparametric methods
+#'
 #' @export
 #'
 #' @importFrom AnnotationDbi get as.list 
@@ -14,8 +160,8 @@ compFDR = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymetho
     Npsudo = 20, FDRmeth = c("BH","Permutation"), plots = FALSE, verbose = FALSE) {
    
     Npsudo = as.integer(Npsudo[1])
-    Nmin = as.integer(Nmin[1])
-    NI = as.integer(NI[1])
+    Nmin = Nmin[1]
+    NI = NI[1]
     stopifnot(Npsudo >= 0, Nmin > 0, NI > 1)
     FDRmeth = match.arg(FDRmeth)
 
@@ -207,13 +353,25 @@ compFDR = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymetho
             prt = split(prt, prt$Method)
             dfr[names(GSMok)] = prt[names(GSMok)]
             rm(prt)
-
+            if (Npsudo > 0L) {
+                ms = sapply(parRes, function(x) {
+                    m = unique(x$targ$Method)
+                    stopifnot(length(m) == 1)
+                    m
+                })
+                parRes = lapply(names(GSMok), function(m) parRes[ms == m])
+                psim[names(GSMok)] = lapply(parRes, aggP)
+            }
+            rm(parRes)
         }, finally = parallel::stopCluster(clust))
     } else {
         if (use.parallel) message("Execute in serial! Packages 'doParallel' and 'parallel' 
                                   needed for parallelization!")
-        dfr[names(GSMok)] = lapply(GSMok, function(m) aggFun(lapply(files, m, mygslist = gslist, 
-            minsize = Nmin)))
+        tmpr = lapply(GSMok, function(m) lapply(files, m, mygslist = gslist, minsize = Nmin))
+        dfr[names(GSMok)] = lapply(tmpr, function(mres) aggFun(lapply(mres, `[[`, "targ")))
+        if (Npsudo > 0L) {
+            psim[names(GSMok)] = lapply(tmpr, function(mres) aggP(mres))
+        }
     }
     
     
@@ -226,12 +384,9 @@ compFDR = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymetho
     
     dfs = list()
     dfs[names(GSmethods)] = lapply(names(GSmethods), function(m) {
-        if (m == "AbsmT") {
+        if (m %in% c("AbsmT", "PADOG")) {
             retn = dfr[["PADOG"]]
-            retn = retn[retn$Method == "AbsmT", ]
-        } else if (m == "PADOG") {
-            retn = dfr[["PADOG"]]
-            retn = retn[retn$Method == "PADOG", ]
+            retn = retn[retn$Method == m, ]
         } else {
             retn = dfr[[m]]
         }
@@ -240,7 +395,19 @@ compFDR = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymetho
         retn[order(retn$Dataset, retn$ID), ]
     })
     rm(dfr)
-    
+   
+    if (Npsudo > 0L) {
+        pperm = list()
+        pperm[names(GSmethods)] = lapply(names(GSmethods), function(m) {
+            if (m %in%  c("AbsmT", "PADOG")) {
+                retn = psim[["PADOG"]][[m]]
+            } else {
+                retn = psim[[m]]
+            }
+            retn
+        })
+        rm(psim)
+    }
     
     psList <- lapply(dfs, function(x) {
         x$P
@@ -317,9 +484,11 @@ compFDR = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymetho
     
     if (plots) {
         
-        par(mfrow = c(1, 3))
-        boxplot(psList, ylab = paste("p-value"), las = 3, col = somecols[1:nmets])
-        boxplot(rankList, ylab = "Rank(%)", las = 3, col = somecols[1:nmets])
+        usrPar <- par(mfrow = c(1 + (Npsudo > 0L), 3))
+        on.exit(par(usrPar))
+
+        boxplot(psList, ylab = paste("p-value"), main="Target Gene Sets", las = 3, col = somecols[1:nmets])
+        boxplot(rankList, ylab = "Rank(%)", main="Target Gene Sets", las = 3, col = somecols[1:nmets])
         
         mff2 = function(x) {
             x - rankList[[refMethod]]
@@ -332,15 +501,30 @@ compFDR = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymetho
         } else {
             xlb = NULL
         }
-        boxplot(newranks, ylab = paste("Rank(%)-Rank ", refMethod, " (%)"), las = 3, 
+        boxplot(newranks, ylab = paste("Rank(%)-Rank ", refMethod, " (%)"), main="Target Gene Sets", las = 3, 
             col = somecols[2:nmets], names = names(newranks), xlab = xlb)
         abline(h = 0)
         
+
+
+        if (Npsudo > 0L) {
+            aps = lapply(pperm, `[[`, "ap")
+            tps = lapply(pperm, `[[`, "tp")
+            boxplot(aps, ylab = "null p-value", main="All Gene Sets", las = 3, col = somecols[1:nmets])
+            boxplot(tps, ylab = "null p-value", main="Target Gene Sets", las = 3, col = somecols[1:nmets])
+            boxplot(fdrList, ylab = "fdr", main="Target Gene Sets", las = 3, col = somecols[1:nmets])
+        }
+
+
     }
     
     out = repo[, c("Method", "p geomean", "p med", "% p.value<0.05", "% q.value<0.05", 
         "rank mean", "rank med", "p Wilcox.", "p LME", "coef. LME")]
-    list(summary = out, ranks = rankList, pvalues = psList, qvalues = fdrList)
+    if (Npsudo > 0L) {
+        return(list(summary = out, ranks = rankList, pvalues = psList, qvalues = fdrList, nullp = pperm))
+    } else {
+        return(list(summary = out, ranks = rankList, pvalues = psList, qvalues = fdrList))
+    }
     
 }
 

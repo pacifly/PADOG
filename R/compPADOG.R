@@ -252,7 +252,9 @@ compPADOG = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymet
     
     if (plots) {
         
-        par(mfrow = c(1, 3))
+        usrPar <- par(mfrow = c(1, 3))
+        on.exit(par(usrPar))
+
         boxplot(psList, ylab = paste("p-value"), las = 3, col = somecols[1:nmets])
         boxplot(rankList, ylab = "Rank(%)", las = 3, col = somecols[1:nmets])
         

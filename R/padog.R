@@ -298,13 +298,15 @@ padog <- function(esetm = NULL, group = NULL, paired = FALSE, block = NULL, gsli
         p0 = sapply(1:ncol(x), function(z) rowMeans(x[,-z,drop=FALSE] > x[,z], na.rm=TRUE))
         pval <<- c(pval, list(p0))
         getFDR(p0, p1)
-    }
+    })
     names(fdrs) = c("FDRmeanAbsT", "FDRpadog")
     names(pval) = c("AbsmT", "PADOG") #use method names
 
     # do plot the scores for the star pathway
     if (plots) {
-        par(mfrow = c(2, 2))
+        usrPar <- par(mfrow = c(2, 2))
+        on.exit(par(usrPar))
+
         boxplot(MSabsT_raw[, 1:plotIte] ~ col(MSabsT_raw[, 1:plotIte]), col = c("lightblue", 
             rep("whitesmoke", NI)), names = c("0", 1:(plotIte - 1)), cex.axis = 0.8, 
             main = "ABSmT scores after first standardization", cex.main = 0.6)

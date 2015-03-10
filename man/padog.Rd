@@ -108,7 +108,7 @@ paral=TRUE,
 ncr=2)
 
 
-myr[1:20,]
+myr$targ[1:20,]
 
 all.equal(myr, myr2)
 

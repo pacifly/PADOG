@@ -33,7 +33,7 @@
     getFDR = function(p0, p1) {
         # p1: observed p value vector; p0: permutation p value matrix.
         fdr0 = sapply(p1, function(z) {
-                   ifelse(is.na(z), na, max(sum(p0 <= z, na.rm=TRUE) * sum(!is.na(p1))
+                   ifelse(is.na(z), NA, max(sum(p0 <= z, na.rm=TRUE) * sum(!is.na(p1))
                    / sum(p1 <= z, na.rm=TRUE) / sum(!is.na(p0)), 1))
                })
         nna = !is.na(fdr0)
