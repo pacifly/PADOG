@@ -42,10 +42,13 @@ See cited documents for more details.
 
 
 \value{
- A data frame containing the ranked pathways and various statistics: \code{Name} is the name of the gene set;
+ A list of elements "res" and "pval". The "res" is a data frame containing the ranked pathways and various statistics: \code{Name} is the name of the gene set;
  \code{ID} is the gene set identifier; \code{Size} is the number of genes in the geneset; \code{meanAbsT0} is the mean of absolute t-scores;
   \code{padog0} is the mean of weighted absolute t-scores;
  \code{PmeanAbsT} significance of the meanAbsT0;   \code{Ppadog} is the significance of the padog0 score;
+ \code{FDRmeanAbsT} and \code{FDRpadog} fdr estimated from the permutation for meanAbsT0 and padog0 respectively.
+ The "pval" is a list of two elements ("AbsmT", "PADOG") corresponding to a matrix of null p values of all gene sets applying the method on permutated phenotype (i.e. group label).
+ The rownames of the matrix are the gene set IDs; the number of columns corresponds to the number of permutations.
 }
 
 \references{
