@@ -33,7 +33,7 @@ organism="hsa",
 verbose=FALSE,
 Nmin=3,
 NI=50,
-plots=TRUE)$targ
+plots=TRUE)$res
 
 myr[1:15,-c(4,5)]
 
