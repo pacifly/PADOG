@@ -161,11 +161,24 @@ compFDR = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymetho
     }
    
     aggP = function(zdat) {
-        if (is.matrix(zdat)) {
-            
-        } else {
-        
+        d1 = zdat[[1]]$pval
+        ismat = is.matrix(d1)
+        stopifnot(ismat || is.list(d1))
+        atp = function(xdat) {
+            list(ap = unlist(lapply(xdat, function(z) c(z$pval))),
+                 tp = unlist(lapply(xdat, function(z) c(z$pval[z$targ$ID,]))))
         }
+        if (ismat) {
+            ret = atp(zdat)
+        } else {
+            ms = names(d1)
+            ret = lapply(ms, function(m) {
+                atp(lapply(zdat, function(z) list(targ = z$targ[z$targ$Method == m,], 
+                                                  pval = z$pval[[m]])))
+            })
+            names(ret) = ms
+        }
+        ret
     }
 
     dfr = list()
@@ -174,7 +187,7 @@ compFDR = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymetho
     if ("PADOG" %in% names(GSMok)) {
         tmpr = lapply(files, GSMok[["PADOG"]], mygslist = gslist, minsize = Nmin)
         dfr[["PADOG"]] = aggFun(lapply(tmpr, `[[`, "targ"))
-        if(Npsudo > 0L) { psim[["PADOG"]] = aggP(lapply(tmpr, `[[`, "pval")) }
+        if (Npsudo > 0L) { psim[["PADOG"]] = aggP(tmpr) }
         GSMok = GSMok[names(GSMok) != "PADOG"]
     }
     
@@ -190,13 +203,14 @@ compFDR = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymetho
                       foreach(ini = seq_along(files),  .combine = "c", .packages = pkgs, .export = expVars) %dopar% {
                               lapply(files[ini], GSMok[[outi]], mygslist = gslist, minsize = Nmin)
             }
-            parRes = aggFun(parRes)
-            parRes = split(parRes, parRes$Method)
-            dfr[names(GSMok)] = parRes[names(GSMok)]
-            rm(parRes)
+            prt = aggFun(lapply(parRes, `[[`, "targ"))
+            prt = split(prt, prt$Method)
+            dfr[names(GSMok)] = prt[names(GSMok)]
+            rm(prt)
+
         }, finally = parallel::stopCluster(clust))
     } else {
-        if (use.parallel) message("Execute in sequential! Packages 'doParallel' and 'parallel' 
+        if (use.parallel) message("Execute in serial! Packages 'doParallel' and 'parallel' 
                                   needed for parallelization!")
         dfr[names(GSMok)] = lapply(GSMok, function(m) aggFun(lapply(files, m, mygslist = gslist, 
             minsize = Nmin)))

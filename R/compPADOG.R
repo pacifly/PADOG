@@ -145,7 +145,7 @@ compPADOG = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymet
             rm(parRes)
         }, finally = parallel::stopCluster(clust))
     } else {
-        if (use.parallel) message("Execute in sequential! Packages 'doParallel' and 'parallel' 
+        if (use.parallel) message("Execute in serial! Packages 'doParallel' and 'parallel' 
                                   needed for parallelization!")
         dfr[names(GSMok)] = lapply(GSMok, function(m) aggFun(lapply(files, m, mygslist = gslist, 
             minsize = Nmin)))

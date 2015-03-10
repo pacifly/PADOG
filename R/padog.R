@@ -258,7 +258,7 @@ padog <- function(esetm = NULL, group = NULL, paired = FALSE, block = NULL, gsli
             rm(parRes)
         }, finally = parallel::stopCluster(clust))
     } else {
-        if (paral) message("Execute in sequential! Packages 'doParallel' and 'parallel' 
+        if (paral) message("Execute in serial! Packages 'doParallel' and 'parallel' 
                            needed for parallelization!")
         for (ite in 1:(NI + 1)) {
             Sres <- gsScoreFun(G, block)
@@ -300,7 +300,7 @@ padog <- function(esetm = NULL, group = NULL, paired = FALSE, block = NULL, gsli
         getFDR(p0, p1)
     }
     names(fdrs) = c("FDRmeanAbsT", "FDRpadog")
-    names(pval) = c("P0meanAbsT", "P0padog")
+    names(pval) = c("AbsmT", "PADOG") #use method names
 
     # do plot the scores for the star pathway
     if (plots) {
