@@ -461,9 +461,11 @@ compFDR = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymetho
     }
     
     
-    
-    
-    repo = data.frame(t(sapply(rankList, wioright)))
+    if (length(unique(targetgsList[[refMethod]])) == 1) {
+        repo = data.frame(matrix(NA, nrow=length(rankList), ncol=2))
+    } else {
+        repo = data.frame(t(sapply(rankList, wioright)))
+    }
     names(repo) <- c("coef. LME", "p LME")
     repo$"p Wilcox." <- sapply(rankList, wi)
     
