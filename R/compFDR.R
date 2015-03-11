@@ -120,7 +120,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("ini", "outi"))
 #' res$Dataset<-dataset;
 #' #output only result for the targetGeneSets 
 #' #which are gene sets expected to be relevant in this dataset
-#' return(list(targ = res[res$ID \%in\% targetGeneSets,], pval = nullp))
+#' return(list(targ = res[res$ID %in% targetGeneSets,], pval = nullp))
 #' }
 #' 
 #' #run the analysis on all 24 datasets and compare the new method "myRand" with 
