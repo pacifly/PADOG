@@ -8,7 +8,7 @@ analyzed. The package provides also a benchmark for gene set
 analysis methods in terms of sensitivity and ranking using 24
 public datasets from KEGGdzPathwaysGEO package.
 
-Tarca AL (2012). PADOG: Pathway Analysis with Down-weighting of Overlapping Genes (PADOG). R package version 1.8.0.
+[Tarca, Adi L., et al. "Down-weighting overlapping genes improves gene set analysis." BMC bioinformatics 13.1 (2012): 136.](http://www.biomedcentral.com/1471-2105/13/136)
 
 Installation
 ------------
