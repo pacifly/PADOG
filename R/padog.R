@@ -243,12 +243,12 @@ padog <- function(esetm = NULL, group = NULL, paired = FALSE, block = NULL, gsli
         tryCatch({
             parRes = foreach(ite = 1:(NI + 1), .combine = "c", .packages = "limma") %dorng% 
                 {
-                  if (verbose && (ite %% 10 == 0)) {
-                      cat(ite, "/", NI, "\n")
-                  }
                   Sres <- gsScoreFun(G, block)
                   tmp <- list(t(Sres))
                   names(tmp) <- ite
+                  if (verbose && (ite %% 10 == 0)) {
+                      cat(ite, "/", NI, "\n")
+                  }
                   tmp
                 }
             parRes = do.call(cbind, parRes[order(as.numeric(names(parRes)))])

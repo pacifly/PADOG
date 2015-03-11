@@ -352,10 +352,11 @@ compFDR = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymetho
         tryCatch({
             parRes <- foreach(outi = seq_along(GSMok), .combine = "c", .packages = pkgs, .export = expVars) %:% 
                       foreach(ini = seq_along(files),  .combine = "c", .packages = pkgs, .export = expVars) %dopar% {
+                              inres = lapply(files[ini], GSMok[[outi]], mygslist = gslist, minsize = Nmin)
 			      if (verbose) {
-			          cat(names(GSMok)[outi], " ------> ", files[ini], "\n")
+			          cat("Finish:", names(GSMok)[outi], " ------> ", files[ini], "\n")
 			      }
-                              lapply(files[ini], GSMok[[outi]], mygslist = gslist, minsize = Nmin)
+                              inres
             }
             prt = aggFun(lapply(parRes, `[[`, "targ"))
             prt = split(prt, prt$Method)

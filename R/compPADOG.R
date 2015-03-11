@@ -133,12 +133,20 @@ compPADOG = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymet
         ncores = parallel::detectCores()
         if (!is.null(ncr)) 
             ncores = min(c(ncores, ncr))
-        clust = parallel::makeCluster(ncores)
+        if (verbose) {
+            clust = parallel::makeCluster(ncores, outfile="")
+        } else {
+            clust = parallel::makeCluster(ncores)
+        }
         doParallel::registerDoParallel(clust)
         tryCatch({
             parRes <- foreach(outi = seq_along(GSMok), .combine = "c", .packages = pkgs, .export = expVars) %:% 
                       foreach(ini = seq_along(files),  .combine = "c", .packages = pkgs, .export = expVars) %dopar% {
-                              lapply(files[ini], GSMok[[outi]], mygslist = gslist, minsize = Nmin)
+                              inres = lapply(files[ini], GSMok[[outi]], mygslist = gslist, minsize = Nmin)
+			      if (verbose) {
+			          cat("Finish:", names(GSMok)[outi], " ------> ", files[ini], "\n")
+			      }
+                              inres
             }
             parRes = aggFun(parRes)
             parRes = split(parRes, parRes$Method)
