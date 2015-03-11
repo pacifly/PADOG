@@ -62,9 +62,9 @@ for estimation based on observed and null p values.}
 \item{plots}{If set to TRUE will plot the p values, ranks, the ranks differences w.r.t.
 reference, null p values and fdr when applicable.}
 
-\item{verbose}{This argument will be passed to PADOG and AbsmT methods. If set to TRUE
-it will show the iterations performed so far (when \code{use.parallel = TRUE}, this only
-works for command line R, not Rgui).}
+\item{verbose}{If set to TRUE, for "PADOG" and "AbsmT" methods it will show the iterations
+performed so far, and for others show the method and data set currently being executed
+(when \code{use.parallel = TRUE}, this only works for command line R, not Rgui).}
 }
 \value{
 A list of elements "summary","ranks","pvalues","qvalues" and "nullp" (if \code{Npsudo > 0}).

@@ -53,9 +53,9 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("ini", "outi"))
 #'   for estimation based on observed and null p values.
 #' @param plots If set to TRUE will plot the p values, ranks, the ranks differences w.r.t. 
 #'   reference, null p values and fdr when applicable.
-#' @param verbose This argument will be passed to PADOG and AbsmT methods. If set to TRUE
-#'   it will show the iterations performed so far (when \code{use.parallel = TRUE}, this only
-#'   works for command line R, not Rgui).
+#' @param verbose If set to TRUE, for "PADOG" and "AbsmT" methods it will show the iterations 
+#'   performed so far, and for others show the method and data set currently being executed
+#'   (when \code{use.parallel = TRUE}, this only works for command line R, not Rgui).
 #' @return A list of elements "summary","ranks","pvalues","qvalues" and "nullp" (if \code{Npsudo > 0}). 
 #'   "summary" is a data frame containing: \code{Method} is the name of the gene set analysis method;
 #'     \code{p geomean} geometric mean of nominal p-values for the target gene sets (gene sets expected 
@@ -342,11 +342,18 @@ compFDR = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymetho
         ncores = parallel::detectCores()
         if (!is.null(ncr)) 
             ncores = min(c(ncores, ncr))
-        clust = parallel::makeCluster(ncores)
+        if (verbose) {
+            clust = parallel::makeCluster(ncores, outfile="")
+        } else {
+            clust = parallel::makeCluster(ncores)
+        }
         doParallel::registerDoParallel(clust)
         tryCatch({
             parRes <- foreach(outi = seq_along(GSMok), .combine = "c", .packages = pkgs, .export = expVars) %:% 
                       foreach(ini = seq_along(files),  .combine = "c", .packages = pkgs, .export = expVars) %dopar% {
+			      if (verbose) {
+			          cat(names(GSMok)[outi], " ------> ", files[ini], "\n")
+			      }
                               lapply(files[ini], GSMok[[outi]], mygslist = gslist, minsize = Nmin)
             }
             prt = aggFun(lapply(parRes, `[[`, "targ"))
