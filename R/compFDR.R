@@ -301,7 +301,8 @@ compFDR = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymetho
     
     
     aggFun = function(zdat) {
-        tmp = do.call(rbind, zdat)[, c("ID", "Rank", "P", "FDR", "Dataset", "Method")]
+        zdat = lapply(zdat, `[`, c("ID", "Rank", "P", "FDR", "Dataset", "Method"))
+        tmp = do.call(rbind, zdat)
         rownames(tmp) = NULL
         tmp
     }
