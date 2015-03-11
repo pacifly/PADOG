@@ -13,7 +13,7 @@ Tarca AL (2012). PADOG: Pathway Analysis with Down-weighting of Overlapping Gene
 Installation
 ------------
 
--   the latest released version from Bioconductor:
+-   the latest released version from [**Bioconductor**](http://www.bioconductor.org/packages/release/bioc/html/PADOG.html):
 
     ``` r
     source("http://bioconductor.org/biocLite.R")
