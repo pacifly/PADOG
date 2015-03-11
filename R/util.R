@@ -15,7 +15,7 @@
         return(list)
     }
     
-    padog2absmt = function(res, list, estFDR = c("BH", "Permutation")) {
+    padog2absmt = function(res, list, estFDR = c("BH", "Permutation", "holm")) {
         estFDR = match.arg(estFDR)
         res = res[complete.cases(res[,c("PmeanAbsT", "meanAbsT0")]),]
         res = res[order(res$PmeanAbsT, -res$meanAbsT0), ]
@@ -23,7 +23,7 @@
         res$Rank = (1:nrow(res))/nrow(res) * 100
         res$P = res$PmeanAbsT
         res$FDR = switch(estFDR, 
-                         BH = p.adjust(res$P, "fdr"),
+                         p.adjust(res$P, estFDR),
                          Permutation = res$FDRmeanAbsT
         )
         pidx = res$ID %in% list$targetGeneSets

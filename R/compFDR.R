@@ -50,7 +50,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("ini", "outi"))
 #' @param Npsudo The number of permutations on phenotype (i.e. group label) to obtain null p
 #'   values and estimate fdr. Set to 0 if not interested in estimating fdr from permutation.
 #' @param FDRmeth The method used to estimate fdr; "BH" for Benjamini & Hochberg, "Permutation"
-#'   for estimation based on observed and null p values.
+#'   for estimation based on observed and null p values. You can use "holm" for FWER as well.
 #' @param plots If set to TRUE will plot the p values, ranks, the ranks differences w.r.t. 
 #'   reference, null p values and fdr when applicable.
 #' @param verbose If set to TRUE, for "PADOG" and "AbsmT" methods it will show the iterations 
@@ -157,7 +157,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("ini", "outi"))
 compFDR = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymethods = NULL, 
     gs.names = NULL, gslist = "KEGG.db", organism = "hsa", Nmin = 3, NI = 1000, 
     use.parallel = TRUE, ncr = NULL, pkgs = "GSA", expVars = NULL, dseed = NULL, 
-    Npsudo = 20, FDRmeth = c("BH","Permutation"), plots = FALSE, verbose = FALSE) {
+    Npsudo = 20, FDRmeth = c("BH","Permutation","holm"), plots = FALSE, verbose = FALSE) {
    
     Npsudo = as.integer(Npsudo[1])
     Nmin = Nmin[1]
@@ -188,7 +188,7 @@ compFDR = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymetho
         res$Rank = (1:nrow(res))/nrow(res) * 100
         res$P = res$Ppadog
         res$FDR = switch(FDRmeth,
-                         BH = p.adjust(res$P, "fdr"),
+                         p.adjust(res$P, FDRmeth),
                          Permutation = res$FDRpadog
         )
         
@@ -264,7 +264,7 @@ compFDR = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymetho
         res = res[ord, ]
         res$Rank = rank(res$P)/nrow(res) * 100
         res$FDR = switch(FDRmeth,
-                         BH = p.adjust(res$P, "fdr"),
+                         p.adjust(res$P, FDRmeth),
                          Permutation = res$FDRgsa
         )
         rownames(res) = NULL

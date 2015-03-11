@@ -8,7 +8,8 @@ compFDR(datasets = NULL, existingMethods = c("GSA", "PADOG"),
   mymethods = NULL, gs.names = NULL, gslist = "KEGG.db",
   organism = "hsa", Nmin = 3, NI = 1000, use.parallel = TRUE,
   ncr = NULL, pkgs = "GSA", expVars = NULL, dseed = NULL, Npsudo = 20,
-  FDRmeth = c("BH", "Permutation"), plots = FALSE, verbose = FALSE)
+  FDRmeth = c("BH", "Permutation", "holm"), plots = FALSE,
+  verbose = FALSE)
 }
 \arguments{
 \item{datasets}{A character vector with valid names of datasets to use from the PADOGsets
@@ -57,7 +58,7 @@ in \code{foreach} function from \code{foreach} package.}
 values and estimate fdr. Set to 0 if not interested in estimating fdr from permutation.}
 
 \item{FDRmeth}{The method used to estimate fdr; "BH" for Benjamini & Hochberg, "Permutation"
-for estimation based on observed and null p values.}
+for estimation based on observed and null p values. You can use "holm" for FWER as well.}
 
 \item{plots}{If set to TRUE will plot the p values, ranks, the ranks differences w.r.t.
 reference, null p values and fdr when applicable.}
