@@ -20,7 +20,13 @@
         res = res[complete.cases(res[,c("PmeanAbsT", "meanAbsT0")]),]
         res = res[order(res$PmeanAbsT, -res$meanAbsT0), ]
         res$Method = "AbsmT"
-        res$Rank = (1:nrow(res))/nrow(res) * 100
+        res$Rank = sapply(1:nrow(res), function(n) {
+            p = res$PmeanAbsT
+            s = res$meanAbsT0
+            ifelse(is.na(p[n]), NA, (sum(p < (p[n]), na.rm=TRUE) + 
+                   sum(p == (p[n]) & s >= (s[n]), na.rm=TRUE)) / sum(! is.na(p), na.rm=TRUE) * 100 
+            )
+        }) 
         res$P = res$PmeanAbsT
         res$FDR = switch(estFDR, 
                          p.adjust(res$P, estFDR),

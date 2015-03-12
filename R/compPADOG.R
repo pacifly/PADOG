@@ -32,7 +32,13 @@ compPADOG = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymet
         res$Dataset <- list$dataset
         
         res$Method <- "PADOG"
-        res$Rank = (1:dim(res)[1])/dim(res)[1] * 100
+        res$Rank = sapply(1:nrow(res), function(n) {
+            p = res$Ppadog
+            s = res$padog0
+            ifelse(is.na(p[n]), NA, (sum(p < (p[n]), na.rm=TRUE) + 
+                   sum(p == (p[n]) & s >= (s[n]), na.rm=TRUE)) / sum(! is.na(p), na.rm=TRUE) * 100 
+            )
+        }) 
         res$P = res$Ppadog
         res$FDR = p.adjust(res$P, "fdr")
         
@@ -80,7 +86,7 @@ compPADOG = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymet
             resgsa$pvalues.hi), 1, min), Dataset = list$dataset, stringsAsFactors = FALSE)
         res$Method <- "GSA"
         res = res[order(res$P), ]
-        res$Rank = rank(res$P)/dim(res)[1] * 100
+        res$Rank = sapply(res$P, function(p) ifelse(is.na(p), NA, mean(res$P <= p, na.rm=TRUE) * 100)) 
         res$FDR = p.adjust(res$P, "fdr")
         rownames(res) <- NULL
         res[res$ID %in% list$targetGeneSets, ]

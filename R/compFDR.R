@@ -185,7 +185,13 @@ compFDR = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymetho
         res$Dataset = list$dataset
         
         res$Method = "PADOG"
-        res$Rank = (1:nrow(res))/nrow(res) * 100
+        res$Rank = sapply(1:nrow(res), function(n) {
+            p = res$Ppadog
+            s = res$padog0
+            ifelse(is.na(p[n]), NA, (sum(p < (p[n]), na.rm=TRUE) + 
+                   sum(p == (p[n]) & s >= (s[n]), na.rm=TRUE)) / sum(! is.na(p), na.rm=TRUE) * 100 
+            )
+        }) 
         res$P = res$Ppadog
         res$FDR = switch(FDRmeth,
                          p.adjust(res$P, FDRmeth),
@@ -261,7 +267,7 @@ compFDR = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymetho
         res$Method = "GSA"
         ord = order(res$P)
         res = res[ord, ]
-        res$Rank = rank(res$P)/nrow(res) * 100
+        res$Rank = sapply(res$P, function(p) ifelse(is.na(p), NA, mean(res$P <= p, na.rm=TRUE) * 100))
         res$FDR = switch(FDRmeth,
                          p.adjust(res$P, FDRmeth),
                          Permutation = res$FDRgsa
