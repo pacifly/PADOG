@@ -59,20 +59,20 @@ compPADOG = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymet
                 esetm = esetm[rownames(esetm) %in% aT1$ID, ]
                 rownames(esetm) <- aT1$ENTREZID[match(rownames(esetm), aT1$ID)]
             }  
+
+        KK = min(ncol(esetm), max(3, min(10, table(group))))
+
         # Run GSA maxmean
-        nc = table(list$ano$Group)["c"]
-        nd = table(list$ano$Group)["d"]
         if (list$design == "Not Paired") {
-            yy = c(rep(1, nc), rep(2, nd))
+            yy = as.numeric(factor(group))
         } else {
-            block = as.numeric(factor(list$ano$Block))
-            block[duplicated(block)] <- (-block[duplicated(block)])
-            yy = block
+            yy = as.numeric(factor(block))
+            yy = yy * as.numeric(as.character(factor(group, labels=c(-1, 1)) ))
         }
         
         resgsa = GSA(x = esetm, y = yy, genesets = mygslist, genenames = rownames(esetm), 
             method = "maxmean", resp.type = ifelse(list$design == "Not Paired", "Two class unpaired", 
-                "Two class paired"), censoring.status = NULL, random.seed = 1, knn.neighbors = 10, 
+                "Two class paired"), censoring.status = NULL, random.seed = dseed, knn.neighbors = KK, 
             s0 = NULL, s0.perc = NULL, minsize = minsize, maxsize = 1000, restand = TRUE, 
             restand.basis = c("catalog", "data"), nperms = NI)
         

@@ -217,21 +217,20 @@ compFDR = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymetho
                 rownames(esetm) <- aT1$ENTREZID[match(rownames(esetm), aT1$ID)]
             } 
 
+        KK = min(ncol(esetm), max(3, min(10, table(group))))
+
         runGSA = function(group) { 
             # Run GSA maxmean
-            tab = table(group)
-            nc = tab["c"]
-            nd = tab["d"]
             if (list$design == "Not Paired") {
-                yy = c(rep(1, nc), rep(2, nd))
+                yy = as.numeric(factor(group))
             } else {
                 yy = as.numeric(factor(block))
-                yy[duplicated(yy)] = (-yy[duplicated(yy)])
+                yy = yy * as.numeric(as.character(factor(group, labels=c(-1, 1)) ))
             }
             
             resgsa = GSA(x = esetm, y = yy, genesets = mygslist, genenames = rownames(esetm), 
                 method = "maxmean", resp.type = ifelse(list$design == "Not Paired", "Two class unpaired", 
-                    "Two class paired"), censoring.status = NULL, random.seed = 1, knn.neighbors = 10, 
+                "Two class paired"), censoring.status = NULL, random.seed = dseed, knn.neighbors = KK, 
                 s0 = NULL, s0.perc = NULL, minsize = minsize, maxsize = 1000, restand = TRUE, 
                 restand.basis = c("catalog", "data"), nperms = NI)
             2 * apply(cbind(resgsa$pvalues.lo, resgsa$pvalues.hi), 1, min)
