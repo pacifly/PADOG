@@ -42,7 +42,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("ini", "outi"))
 #' @param ncr The number of CPU cores used when \code{use.parallel} set to TRUE. Default is 
 #'   to use all CPU cores detected.
 #' @param pkgs Character vector of packages that the \code{existingMethods} and \code{mymethods} 
-#'   depend on (e.g. \code{NULL} for "PADOG", "GSA" for "GSA"). Consult the \code{.packages} 
+#'   depend on (\code{NULL} for "PADOG" and "GSA"). Consult the \code{.packages} 
 #'   argument in \code{foreach} function from \code{foreach} package.
 #' @param expVars Character vector of variables to export. Consult the \code{.export} argument
 #'   in \code{foreach} function from \code{foreach} package.
@@ -73,71 +73,8 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("ini", "outi"))
 #'     nominal p values, fdr q values) of the target gene sets in the corresponding data sets.
 #'   "nullp": a list of elements containing for each method the null p values (a list of two
 #'     elements "ap" for all gene sets and "tp" for target gene sets) pooled over all data sets. 
-#' @examples
-#' #compare a new geneset analysis method with PADOG and GSA
-#' 
-#' #define your new gene set analysis method that takes as input:
-#' #set- the name of dataset file from the PADOGsetspackage
-#' #mygslist - a list with the genesets
-#' #minsize- minimum number of genes in a geneset to be considered for analysis 
-#' 
-#' randomF=function(set,mygslist,minsize){
-#' set.seed(1)
-#' #this loads the dataset in an ExpressionSet object called x
-#' data(list=set,package="KEGGdzPathwaysGEO")
-#' x=get(set)
-#' 
-#' #Extract from the dataset the required info to be passed to padog
-#' exp=experimentData(x);
-#' dat.m=exprs(x)
-#' ano=pData(x)
-#' dataset= exp@@name
-#' design= notes(exp)$design
-#' annotation= paste(x@@annotation,".db",sep="")
-#' targetGeneSets= notes(exp)$targetGeneSets
-#' 
-#' 
-#' #get rid of duplicates probesets per ENTREZ ID by keeping the probeset 
-#' #with smallest p-value (computed using limma) 
-#' aT1=filteranot(esetm=dat.m,group=ano$Group,paired=(design=="Paired"),
-#'  block=ano$Block,annotation=annotation)
-#' #create an output dataframe for this toy method with random gene set p-values
-#' mygslistSize=unlist(lapply(mygslist,function(x){length(intersect(aT1$ENTREZID,x))}))
-#' res=data.frame(ID=names(mygslist),P=runif(length(mygslist)),
-#'  Size=mygslistSize,stringsAsFactors=FALSE)
-#' res$FDR=p.adjust(res$P,"fdr")
-#' #drop genesets with less than minsize genes in the current dataset 
-#' res=res[res$Size>=minsize,]
-#' #obtain null p value matrix
-#' nullp = sapply(1:20, function(x)  runif(nrow(res)))
-#' rownames(nullp) = res$ID
-#' #compute ranks
-#' res$Rank=rank(res$P)/dim(res)[1]*100
-#' #needed to compare ranks between methods; must be the same as given 
-#' #in mymethods argument "list(myRand="
-#' res$Method="myRand";
-#' #needed because comparisons of ranks between methods is paired at dataset level
-#' res$Dataset<-dataset;
-#' #output only result for the targetGeneSets 
-#' #which are gene sets expected to be relevant in this dataset
-#' return(list(targ = res[res$ID %in% targetGeneSets,], pval = nullp))
-#' }
-#' 
-#' #run the analysis on all 24 datasets and compare the new method "myRand" with 
-#' #PADOG and GSA (if installed) (chosen as reference since is listed first in the existingMethods)
-#' \dontrun{
-#'   out = compFDR(datasets=NULL,existingMethods=c("GSA","PADOG"),
-#'     mymethods=list(myRand=randomF),gslist="KEGG.db",Nmin=3,NI=1000,Npsudo=20, FDRmeth="P",
-#'     plots=FALSE,verbose=FALSE,use.parallel=TRUE,dseed=1,pkgs=c("GSA","PADOG"))
-#' }
-#' 
-#' #compare myRand against PADOG on 3 datasets only
-#' #mysets=data(package="PADOGsets")$results[,"Item"]
-#' mysets=c("GSE9348","GSE8671","GSE1297")
-#' out = compFDR(datasets=mysets,existingMethods=c("PADOG"),
-#'   mymethods=list(myRand=randomF),gslist="KEGG.db",Nmin=3,NI=20,Npsudo=0,
-#'   plots=FALSE,verbose=FALSE,use.parallel=FALSE,dseed=1,pkgs=NULL)
-#' 
+#' @example /inst/examples/compFDR.R 
+#'
 #' @references Adi L. Tarca, Sorin Draghici, Gaurav Bhatti, Roberto Romero. Down-weighting 
 #'    overlapping genes improves gene set analysis. BMC Bioinformatics, 2012.
 #' @author
@@ -156,7 +93,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("ini", "outi"))
 #'
 compFDR = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymethods = NULL, 
     gs.names = NULL, gslist = "KEGG.db", organism = "hsa", Nmin = 3, NI = 1000, 
-    use.parallel = TRUE, ncr = NULL, pkgs = "GSA", expVars = NULL, dseed = NULL, 
+    use.parallel = TRUE, ncr = NULL, pkgs = NULL, expVars = NULL, dseed = NULL, 
     Npsudo = 20, FDRmeth = c("BH","Permutation","holm"), plots = FALSE, verbose = FALSE) {
    
     Npsudo = as.integer(Npsudo[1])

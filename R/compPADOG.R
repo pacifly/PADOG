@@ -10,7 +10,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("ini", "outi"))
 #'
 compPADOG = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymethods = NULL, 
     gs.names = NULL, gslist = "KEGG.db", organism = "hsa", Nmin = 3, NI = 1000, use.parallel = TRUE, 
-    ncr = NULL, pkgs = "GSA", expVars = NULL, dseed = NULL, plots = FALSE, verbose = FALSE) {
+    ncr = NULL, pkgs = NULL, expVars = NULL, dseed = NULL, plots = FALSE, verbose = FALSE) {
     
     if (is.null(datasets)) {
         files = data(package = "KEGGdzPathwaysGEO")$results[, "Item"]

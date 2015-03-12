@@ -8,7 +8,7 @@ public datasets.
 \usage{
 compPADOG(datasets=NULL,existingMethods=c("GSA","PADOG"),mymethods=NULL,gs.names=NULL,
           gslist="KEGG.db",organism="hsa",Nmin=3,NI=1000,use.parallel=TRUE,ncr=NULL,
-          pkgs="GSA", expVars=NULL, dseed=NULL,plots=FALSE,verbose=FALSE)
+          pkgs=NULL, expVars=NULL, dseed=NULL,plots=FALSE,verbose=FALSE)
 }
 \arguments{
   \item{datasets}{A character vector with valid names of datasets to use from the PADOGsets package. If left NULL all datasets avalibale in PADOGsets will be used.
@@ -24,7 +24,7 @@ compPADOG(datasets=NULL,existingMethods=c("GSA","PADOG"),mymethods=NULL,gs.names
   \item{NI}{Number of iterations to determine the gene set score significance p-values in PADOG and GSA methods.}
   \item{use.parallel}{If set to TRUE and multiple CPU cores are available, the parallelization will be distributed either over the \code{NI} iterations for "PADOG", or over datasets/methods combination otherwise.}
   \item{ncr}{The number of CPU cores used when \code{use.parallel} set to TRUE. Default is to use all CPU cores detected.}
-  \item{pkgs}{Character vector of packages that the \code{existingMethods} and \code{mymethods} depend on (e.g. \code{NULL} for "PADOG", "GSA" for "GSA"). Consult the \code{.packages} argument in \code{foreach} function from \code{foreach} package.}
+  \item{pkgs}{Character vector of packages that the \code{existingMethods} and \code{mymethods} depend on (\code{NULL} for "PADOG" and "GSA"). Consult the \code{.packages} argument in \code{foreach} function from \code{foreach} package.}
   \item{expVars}{Character vector of variables to export. Consult the \code{.export} argument in \code{foreach} function from \code{foreach} package.}
   \item{dseed}{Optional initial seed for random number generator (integer) used in \code{padog}.}
   \item{plots}{If set to TRUE will plot the ranks of the target genesets and the ranks differences between a methods and the reference method.}
@@ -113,7 +113,7 @@ return(res[res$ID \%in\% targetGeneSets,])
 #PADOG and GSA (if installed) (chosen as reference since is listed first in the existingMethods)
 #out=compPADOG(datasets=NULL,existingMethods=c("GSA","PADOG"),
  #mymethods=list(myRand=randomF),gslist="KEGG.db",Nmin=3,NI=1000,
- #plots=FALSE,verbose=FALSE,use.parallel=TRUE,dseed=1,pkgs=c("GSA","PADOG"))
+ #plots=FALSE,verbose=FALSE,use.parallel=TRUE,dseed=1,pkgs=NULL)
 
 #compare myRand against PADOG on 3 datasets only
 #mysets=data(package="PADOGsets")$results[,"Item"]
