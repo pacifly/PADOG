@@ -429,7 +429,7 @@ compFDR = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymetho
     
     nmets = length(psList)
     
-    somecols = c("lightgrey", "lightblue", "orange", "red", "blue", "grey")
+    somecols = c("lightgrey", "lightblue", "orange", "red", "purple", "lightgreen")
     set.seed(1)
     if (nmets > 6) {
         somecols = c(somecols, sample(setdiff(colors(), somecols))[1:(nmets - 6)])
