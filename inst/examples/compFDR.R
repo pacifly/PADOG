@@ -1,6 +1,6 @@
 setF = function(type=c("pos","uni","neg"), NI=1000, dseed=1, FDRmeth=c("BH","Permutation","holm")) {
     ### use this caller function to return some artificial gene set analysis methods:
-    ### type -- uni for uniform p values, pos / neg for excessive false positive / negative respectively
+    ### type -- uni for uniform p values, pos / neg for excessive false positive / negative 
     type = match.arg(type)
     FDRmeth = match.arg(FDRmeth)
     return(function(set, mygslist, minsize) {

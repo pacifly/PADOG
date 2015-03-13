@@ -224,7 +224,7 @@ compPADOG = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymet
                 Y = c(rankList[[refMethod]], x), Dataset = factor(rep(dsList[[refMethod]], 2)), 
                 Path = factor(rep(targetgsList[[refMethod]], 2)))
             md = lme(Y ~ Method, random = ~1 | Path/Dataset, data = dset)
-            re = summary(md)$tTable["Method", c(1, 5)]
+            re = summary(md)$tTable[2, c(1, 5)]
             if (re[1] < 0) {
                 c(re[1], re[2]/2)
             } else {
