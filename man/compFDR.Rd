@@ -7,7 +7,7 @@
 compFDR(datasets = NULL, existingMethods = c("GSA", "PADOG"),
   mymethods = NULL, gs.names = NULL, gslist = "KEGG.db",
   organism = "hsa", Nmin = 3, NI = 1000, use.parallel = TRUE,
-  ncr = NULL, pkgs = "GSA", expVars = NULL, dseed = NULL, Npsudo = 20,
+  ncr = NULL, pkgs = NULL, expVars = NULL, dseed = NULL, Npsudo = 20,
   FDRmeth = c("BH", "Permutation", "holm"), plots = FALSE,
   verbose = FALSE)
 }
@@ -46,7 +46,7 @@ datasets/methods combination otherwise.}
 to use all CPU cores detected.}
 
 \item{pkgs}{Character vector of packages that the \code{existingMethods} and \code{mymethods}
-depend on (e.g. \code{NULL} for "PADOG", "GSA" for "GSA"). Consult the \code{.packages}
+depend on (\code{NULL} for "PADOG" and "GSA"). Consult the \code{.packages}
 argument in \code{foreach} function from \code{foreach} package.}
 
 \item{expVars}{Character vector of variables to export. Consult the \code{.export} argument
@@ -103,69 +103,85 @@ accessed from the method algorithm itself. For "GSA", the "Permutation" method i
 when \code{Npsudo > 0}.
 }
 \examples{
-#compare a new geneset analysis method with PADOG and GSA
+setF = function(type=c("pos","uni","neg"), NI=1000, dseed=1, FDRmeth=c("BH","Permutation","holm")) {
+    ### use this caller function to return some artificial gene set analysis methods:
+    ### type -- uni for uniform p values, pos / neg for excessive false positive / negative respectively
+    type = match.arg(type)
+    FDRmeth = match.arg(FDRmeth)
+    return(function(set, mygslist, minsize) {
+    # define your new gene set analysis method that takes as input:
+    # set -- the name of dataset file from the PADOGsetspackage
+    # mygslist -- a list of the genesets
+    # minsize -- minimum number of genes in a geneset to be considered for analysis 
+        set.seed(dseed)
+        data(list=set, package="KEGGdzPathwaysGEO", envir=environment())
+        x = get(set)
 
-#define your new gene set analysis method that takes as input:
-#set- the name of dataset file from the PADOGsetspackage
-#mygslist - a list with the genesets
-#minsize- minimum number of genes in a geneset to be considered for analysis
+        # extract from the dataset the required info
+        exp = experimentData(x)
+        dat.m = exprs(x)
+        ano = pData(x)
+        dataset = exp@name
+        design = notes(exp)$design
+        annotation = paste(x@annotation,".db",sep="")
+        targetGeneSets = notes(exp)$targetGeneSets
 
-randomF=function(set,mygslist,minsize){
-set.seed(1)
-#this loads the dataset in an ExpressionSet object called x
-data(list=set,package="KEGGdzPathwaysGEO")
-x=get(set)
+        # get rid of duplicates probesets per ENTREZ ID
+        aT1 = filteranot(esetm=dat.m, group=ano$Group, paired=(design == "Paired"),
+            block=ano$Block, annotation=annotation)
+            
+        # remove from gene sets the genes absent in the current dataset
+        mygslist = lapply(mygslist, function(z) z[z \%in\% (aT1$ENTREZID)])
+        # drop gene sets with less than minsize genes in the current dataset
+        mygslist = mygslist[sapply(mygslist, length) >= minsize]
+        
+        # this toy method simulate some artificial p values for gene sets
+        pres = switch(type,
+                      uni = runif(length(mygslist)),
+                      pos = rbeta(length(mygslist), 1, 5),
+                      neg = rbeta(length(mygslist), 5, 1)
+        )
+        res = data.frame(ID=names(mygslist), P=pres, stringsAsFactors=FALSE) 
+                         
+        # obtain null p value matrix (i.e. applying your gene set analysis 
+        # method on permuted group labels for NI times) that will be used
+        # in estimating fdr if FDRmeth = "Permutation"
+        nullp = switch(type,
+                       uni = matrix(runif(nrow(res) * NI), ncol = NI),
+                       pos = matrix(rbeta(nrow(res) * NI, 1, 5), ncol = NI),
+                       neg = matrix(rbeta(nrow(res) * NI, 5, 1), ncol = NI)
+        )
+        rownames(nullp) = res$ID
+        
+        # multiple test adjustment        
+        res$FDR = switch(FDRmeth,
+                         p.adjust(res$P, FDRmeth),
+                         Permutation = PADOG:::getFDR(nullp, res$P)
+        )
+        
+        # compute normalized ranks
+        res$Rank = rank(res$P, na.last="keep") / sum(!is.na(res$P)) * 100
+        # record method name and dataset name
+        res$Method = type
+        res$Dataset = dataset
 
-#Extract from the dataset the required info to be passed to padog
-exp=experimentData(x);
-dat.m=exprs(x)
-ano=pData(x)
-dataset= exp@name
-design= notes(exp)$design
-annotation= paste(x@annotation,".db",sep="")
-targetGeneSets= notes(exp)$targetGeneSets
-
-
-#get rid of duplicates probesets per ENTREZ ID by keeping the probeset
-#with smallest p-value (computed using limma)
-aT1=filteranot(esetm=dat.m,group=ano$Group,paired=(design=="Paired"),
- block=ano$Block,annotation=annotation)
-#create an output dataframe for this toy method with random gene set p-values
-mygslistSize=unlist(lapply(mygslist,function(x){length(intersect(aT1$ENTREZID,x))}))
-res=data.frame(ID=names(mygslist),P=runif(length(mygslist)),
- Size=mygslistSize,stringsAsFactors=FALSE)
-res$FDR=p.adjust(res$P,"fdr")
-#drop genesets with less than minsize genes in the current dataset
-res=res[res$Size>=minsize,]
-#obtain null p value matrix
-nullp = sapply(1:20, function(x)  runif(nrow(res)))
-rownames(nullp) = res$ID
-#compute ranks
-res$Rank=rank(res$P)/dim(res)[1]*100
-#needed to compare ranks between methods; must be the same as given
-#in mymethods argument "list(myRand="
-res$Method="myRand";
-#needed because comparisons of ranks between methods is paired at dataset level
-res$Dataset<-dataset;
-#output only result for the targetGeneSets
-#which are gene sets expected to be relevant in this dataset
-return(list(targ = res[res$ID \%in\% targetGeneSets,], pval = nullp))
+        # return relevant gene sets result and null p values
+        return(list(targ = res[res$ID \%in\% targetGeneSets,], pval = nullp))
+      }
+    )
 }
 
-#run the analysis on all 24 datasets and compare the new method "myRand" with
-#PADOG and GSA (if installed) (chosen as reference since is listed first in the existingMethods)
-\dontrun{
-  out = compFDR(datasets=NULL,existingMethods=c("GSA","PADOG"),
-    mymethods=list(myRand=randomF),gslist="KEGG.db",Nmin=3,NI=1000,Npsudo=20, FDRmeth="P",
-    plots=FALSE,verbose=FALSE,use.parallel=TRUE,dseed=1,pkgs=c("GSA","PADOG"))
-}
+mymnam = c("pos","uni","neg")
+mym = lapply(mymnam, setF, NI=20, dseed=1, FDRmeth="P")
+names(mym) = mymnam
 
-#compare myRand against PADOG on 3 datasets only
-#mysets=data(package="PADOGsets")$results[,"Item"]
-mysets=c("GSE9348","GSE8671","GSE1297")
-out = compFDR(datasets=mysets,existingMethods=c("PADOG"),
-  mymethods=list(myRand=randomF),gslist="KEGG.db",Nmin=3,NI=20,Npsudo=0,
-  plots=FALSE,verbose=FALSE,use.parallel=FALSE,dseed=1,pkgs=NULL)
+# run the analysis on 3 datasets and compare the new methods with PADOG
+# mysets = data(package="PADOGsets")$results[,"Item"]
+mysets = c("GSE9348","GSE8671","GSE1297")
+out = compFDR(datasets=mysets, existingMethods=c("AbsmT", "PADOG"),
+    mymethods=mym, gslist="KEGG.db", Nmin=3, NI=20, Npsudo=0, FDRmeth="P", 
+    plots=FALSE, verbose=FALSE, use.parallel=FALSE, dseed=1, pkgs=NULL)
+
 }
 \author{
 Adi Laurentiu Tarca \email{atarca@med.wayne.edu},
