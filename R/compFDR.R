@@ -179,15 +179,19 @@ compFDR = function(datasets = NULL, existingMethods = c("GSA", "PADOG"), mymetho
             2 * apply(cbind(resgsa$pvalues.lo, resgsa$pvalues.hi), 1, min)
         }
         
-        B = factor(block)
-        o = order(B)
-        pgrps = lapply(1:(Npsudo + 1), function(x) {
-            G = group
-            if (x > 1) {
-                G[o] = unlist(tapply(G, B, sample, simplify=FALSE))
-            }
-            G
-        })
+        if (list$design == "Paired") {
+            B = factor(block)
+            o = order(B)
+            pgrps = lapply(1:(Npsudo + 1), function(x) {
+                G = group
+                if (x > 1) {
+                    G[o] = unlist(tapply(G, B, sample, simplify=FALSE))
+                }
+                G
+            })
+        } else {
+            pgrps = c(list(group), replicate(Npsudo, sample(group), simplify=FALSE))
+        }
 
         pres = lapply(pgrps, runGSA)
         pres = do.call(cbind, pres)
