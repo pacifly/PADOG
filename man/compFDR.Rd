@@ -192,7 +192,8 @@ Adi L. Tarca, Sorin Draghici, Gaurav Bhatti, Roberto Romero. Down-weighting
    overlapping genes improves gene set analysis. BMC Bioinformatics, 2012.
 }
 \seealso{
-See \code{\link{compPADOG}} for back-compatibility (i.e. no comparing fdr).
+See \code{\link{compPADOG}} for back-compatibility (i.e. no specificity/fdr comparison).
+   Refer to latest development at \url{https://github.com/pacifly/PADOG}
 }
 \keyword{methods}
 \keyword{nonparametric}

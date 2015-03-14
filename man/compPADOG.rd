@@ -59,7 +59,7 @@ Adi L. Tarca, Sorin Draghici, Gaurav Bhatti, Roberto Romero, Down-weighting over
 
 \author{Adi Laurentiu Tarca <atarca@med.wayne.edu> and Zhonghui Xu <zhonghui.xu@gmail.com>}
 
-\seealso{\code{\link{compPADOG}}}
+\seealso{This function is deprecated and can be replaced by \code{\link{compFDR}}. Refer to latest development at \url{https://github.com/pacifly/PADOG}}
 
 \examples{
 

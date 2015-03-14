@@ -81,7 +81,8 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("ini", "outi"))
 #'    Adi Laurentiu Tarca \email{atarca@@med.wayne.edu},
 #'    Zhonghui Xu \email{zhonghui.xu@@gmail.com}
 #'
-#' @seealso See \code{\link{compPADOG}} for back-compatibility (i.e. no comparing fdr).
+#' @seealso See \code{\link{compPADOG}} for back-compatibility (i.e. no specificity/fdr comparison).
+#'    Refer to latest development at \url{https://github.com/pacifly/PADOG}
 #' @keywords nonparametric methods
 #'
 #' @export

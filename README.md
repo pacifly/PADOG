@@ -5,8 +5,8 @@ This package implements a general purpose gene set
 analysis method called PADOG that downplays the importance of
 genes that apear often accross the sets of genes to be
 analyzed. The package provides also a benchmark for gene set
-analysis methods in terms of sensitivity, ranking, null p values,
-and FDR  using 24 public datasets from KEGGdzPathwaysGEO package.
+analysis methods in terms of sensitivity, ranking, specificity (null p
+values), and FDR  using 24 public datasets from KEGGdzPathwaysGEO package.
 
 [Tarca, Adi L., et al. "Down-weighting overlapping genes improves gene set analysis." BMC bioinformatics 13.1 (2012): 136.](http://www.biomedcentral.com/1471-2105/13/136)
 
