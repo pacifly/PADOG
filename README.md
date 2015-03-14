@@ -5,8 +5,8 @@ This package implements a general purpose gene set
 analysis method called PADOG that downplays the importance of
 genes that apear often accross the sets of genes to be
 analyzed. The package provides also a benchmark for gene set
-analysis methods in terms of sensitivity and ranking using 24
-public datasets from KEGGdzPathwaysGEO package.
+analysis methods in terms of sensitivity, ranking, null p values,
+and FDR  using 24 public datasets from KEGGdzPathwaysGEO package.
 
 [Tarca, Adi L., et al. "Down-weighting overlapping genes improves gene set analysis." BMC bioinformatics 13.1 (2012): 136.](http://www.biomedcentral.com/1471-2105/13/136)
 
@@ -45,17 +45,17 @@ Usage
     ### run padog on a colorectal cancer dataset of the 24 benchmark datasets
     set = "GSE9348"
     data(list=set, package="KEGGdzPathwaysGEO")
-    x = get(set)
-    # extract from the dataset the required info
-    exp = experimentData(x)
-    dataset = exp@name
-    dat.m = exprs(x)
-    ano = pData(x)
-    design = notes(exp)$design
-    annotation = paste(x@annotation,".db",sep="")
-    targetGeneSets = notes(exp)$targetGeneSets
 
-    # run without parallel
+    # extract from the dataset the required info
+    dlist = PADOG:::getdataaslist(set)
+    dataset = dlist$dataset
+    dat.m = dlist$dat.m
+    ano = dlist$ano
+    design = dlist$design
+    annotation = dlist$annotation
+    targetGeneSets = dlist$targetGeneSets
+
+    # run in serial
     myr = padog(esetm = dat.m, group = ano$Group, paired = design=="Paired",
         block = ano$Block, targetgs = targetGeneSets, annotation = annotation,
         gslist = "KEGG.db", organism = "hsa", verbose = TRUE, Nmin = 3, NI = 200,
@@ -63,7 +63,7 @@ Usage
 
     head(myr$res, 20)
 
-    # run with parallel
+    # run in parallel using 2 CPU cores
     myr2 = padog(esetm = dat.m, group = ano$Group, paired = design=="Paired",
         block = ano$Block, targetgs = targetGeneSets, annotation = annotation,
         gslist = "KEGG.db", organism = "hsa", verbose = TRUE, Nmin = 3, NI = 200,
@@ -90,9 +90,9 @@ Usage
         # minsize -- minimum number of genes in a geneset to be considered for analysis 
             set.seed(dseed)
             data(list=set, package="KEGGdzPathwaysGEO", envir=environment())
-            x = get(set)
 
-            # extract from the dataset the required info
+            # extract from the dataset the required info (you can also use function PADOG:::getdataaslist)
+            x = get(set)
             exp = experimentData(x)
             dat.m = exprs(x)
             ano = pData(x)
@@ -163,7 +163,7 @@ Usage
     BH (Benjamini & Hochberg) method (set FDRmeth to "BH" in the above running):
     ![Compare PADOG with other methods using BH estimate on FDR](https://cloud.githubusercontent.com/assets/9307923/6652869/bc2888b0-ca54-11e4-96df-85049b9c10a0.png)
     
-    As expected, the BH method and permutation based method produce similar FDR estimates when the null 
+    As expected, the BH method and permutation based method produce similar FDR estimates when the null p value
     distribution is uniform. However, note how BH method is fooled when null distribution deviates from uniform.
 
 Documentation
