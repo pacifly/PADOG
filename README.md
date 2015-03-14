@@ -64,7 +64,7 @@ Usage
     head(myr$res, 20)
 
     # run with parallel
-    myr2=padog(esetm = dat.m, group = ano$Group, paired = design=="Paired",
+    myr2 = padog(esetm = dat.m, group = ano$Group, paired = design=="Paired",
         block = ano$Block, targetgs = targetGeneSets, annotation = annotation,
         gslist = "KEGG.db", organism = "hsa", verbose = TRUE, Nmin = 3, NI = 200,
         plots = FALSE, dseed = 1, paral = TRUE, ncr = 2)
@@ -135,7 +135,7 @@ Usage
             )
             
             # compute normalized ranks
-            res$Rank = rank(res$P, na.last="keep") / sum(!is.na(res$P)) * 100
+            res$Rank = sapply(res$P, function(p) ifelse(is.na(p), NA, mean(res$P <= p, na.rm=TRUE) * 100))
             # record method name and dataset name
             res$Method = type
             res$Dataset = dataset
@@ -157,7 +157,14 @@ Usage
     ```
 
     Here is an output figure from above running:
+    ![Compare PADOG with other methods using permutation estimate on FDR](https://cloud.githubusercontent.com/assets/9307923/6652868/b991c0da-ca54-11e4-8d45-e99ee55d0d2e.png)
 
+    Note that the estimated FDR is conservative (i.e. true FDR can be smaller). Contrast with the classic 
+    BH (Benjamini & Hochberg) method (set FDRmeth to "BH" in the above running):
+    ![Compare PADOG with other methods using BH estimate on FDR](https://cloud.githubusercontent.com/assets/9307923/6652869/bc2888b0-ca54-11e4-96df-85049b9c10a0.png)
+    
+    As expected, the BH method and permutation based method produce similar FDR estimates when the null 
+    distribution is uniform. However, note how BH method is fooled when null distribution deviates from uniform.
 
 Documentation
 -------------
